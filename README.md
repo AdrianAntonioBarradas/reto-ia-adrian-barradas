@@ -68,6 +68,7 @@ Diagrama y detalle: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | **Honestidad como dato** | Un modelo servicial bajo presión de encaje suaviza un "no" hasta que parece un "sí" | [DEC-004](docs/DECISIONS.md#dec-004--la-política-de-honestidad-es-un-dato-estructurado-no-prosa) |
 | **Contrato primero** | Una recuperación perfecta detrás de un endpoint no conforme vale cero | [DEC-005](docs/DECISIONS.md#dec-005--contrato-primero-calidad-después) |
 | **Híbrido sobre denso** | Medido: recall 0.879 vs 0.818 en el mismo conjunto de casos | [DEC-008](docs/DECISIONS.md#dec-008--recuperación-híbrida-elegida-por-medición) |
+| **Un contenedor en Railway** | Sin estado, sin base de datos; la latencia la domina el LLM | [DEC-013](docs/DECISIONS.md#dec-013--despliegue-en-railway-y-el-archivo-de-configuración-que-ya-no-sirve) |
 
 ---
 

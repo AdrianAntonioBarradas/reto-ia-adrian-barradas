@@ -274,3 +274,52 @@ equivocada, no conservadora.
 **Razón:** el formulario de registro acepta una URL de tarjeta y autocompleta el
 formulario entero. Convierte el registro en un solo pegado y hace que el agente sea
 *descubrible*, no sólo invocable. Costó unas 40 líneas.
+
+---
+
+## DEC-013 — Despliegue en Railway, y el archivo de configuración que ya no sirve
+
+**Decisión:** un contenedor en Railway, en el workspace personal (no en el de la
+empresa con la que colabora). Sin base de datos, sin volúmenes, sin trabajos cron.
+
+El agente Guía confirmó que el despliegue es de **libre elección**: *"No hay una
+plataforma, proveedor cloud, arquitectura ni tecnología específica definida como
+requisito."* Railway se eligió porque es la plataforma que ya opera, el servicio no
+tiene estado, y la latencia la domina el LLM y no el cómputo propio.
+
+**El tropiezo, que vale la pena registrar porque cuesta una tarde:** el patrón
+habitual es un `railway.toml` en la raíz del repositorio. Ese archivo **no se detecta
+solo**. El primer despliegue construyó con los valores por defecto de la plataforma y
+sin comando de arranque, y falló sin un mensaje que lo explicara: el contexto del
+despliegue mostraba `builder: RAILPACK` y `startCommand: null`, ignorando por completo
+el archivo.
+
+Intentar apuntar el servicio al archivo por API devuelve, hoy, un rechazo directo:
+*"Config as Code (railway.json / railway.toml) is deprecated. Use Infrastructure as
+Code (.railway/railway.ts) instead."* El formato nuevo requiere el paquete npm
+`@railway/config`, que no tiene sentido añadir a un proyecto de Python sólo para
+declarar tres campos.
+
+**Resolución:** el comando de build, el de arranque, el healthcheck y la política de
+reinicio se fijan **directamente en el servicio**. `railway.toml` se conserva en el
+repositorio como documentación legible de esa configuración, con una nota explícita de
+que no es la fuente efectiva.
+
+**Lo que se pierde:** la configuración deja de estar versionada junto al código. Es un
+costo real y se acepta a conciencia; la alternativa era arrastrar `node_modules` a un
+proyecto de Python. Si esto creciera a varios servicios, el balance se invierte y
+migraría a Infrastructure as Code.
+
+**Segundo tropiezo — la versión de Python.** El builder actual (Railpack) instala
+Python vía mise y eligió **3.13.15**, contra un proyecto fijado a `>=3.12,<3.13`. La
+build murió en el paso de dependencias con `No interpreter found for Python ==3.12.*`,
+que es un mensaje claro pero llega envuelto en cientos de líneas de buildkit. La
+corrección es un archivo `.python-version` con `3.12`: Railpack lo respeta, y de paso
+`uv` lo usa en local y en CI, así que las tres cosas quedan fijadas por el mismo
+archivo en vez de por tres configuraciones distintas.
+
+**Build:** `uv sync --frozen --no-dev && uv run python -m scripts.warm_model`. El segundo
+comando descarga los ~220 MB del modelo ONNX durante la construcción. Sin eso, la
+primera petición tras un arranque en frío paga la descarga, y un fallo de red se
+manifiesta como un timeout ante quien está evaluando el agente en vez de como una
+build rota.

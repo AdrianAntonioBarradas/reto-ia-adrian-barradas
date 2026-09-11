@@ -1,12 +1,21 @@
 # Railway config-as-code.
-# NOTE: this file must be pointed at from the dashboard (Settings -> Config-as-code).
-# There is no RAILWAY_CONFIG_FILE environment variable.
+#
+# IMPORTANT: this file is NOT auto-detected. It must be pointed at from the
+# dashboard (Settings -> Config-as-code) or set via the API. There is no
+# RAILWAY_CONFIG_FILE environment variable. A deploy that silently ignores this
+# file builds with the platform defaults and no start command.
+#
+# The newer Infrastructure-as-Code format (.railway/railway.ts) requires the
+# @railway/config npm package, which is not worth adding to a Python project.
+# Config-as-code keeps working until 2026-12-01.
 [build]
-builder = "NIXPACKS"
+# Railpack is the current default builder. It reads .python-version — without
+# that file it installed Python 3.13 against a project pinned to 3.12 and the
+# dependency sync failed with "No interpreter found for Python ==3.12.*".
 # Bake the ~220 MB ONNX embedding model into the image. Without this the first
 # request after a cold start pays for the download, and a network failure surfaces
 # as a timeout for a real user instead of as a failed build.
-buildCommand = "uv sync --frozen && uv run python -m scripts.warm_model"
+buildCommand = "uv sync --frozen --no-dev && uv run python -m scripts.warm_model"
 
 [deploy]
 startCommand = "uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT"

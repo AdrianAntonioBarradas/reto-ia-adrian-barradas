@@ -1,0 +1,11 @@
+# Never upload to the builder: 241 MB of model weights that the build step
+# downloads itself, plus local-only artefacts.
+.fastembed_cache/
+.venv/
+.devbox/
+.git/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.docx
