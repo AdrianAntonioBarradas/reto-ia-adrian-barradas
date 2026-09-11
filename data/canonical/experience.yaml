@@ -1,0 +1,141 @@
+# NOTE: no `departure_context` field exists here, by design. How the Cicada role
+# ended is private and is excluded at the source, not filtered at query time.
+source_id: master.md#professional-experience
+updated_at: 2026-09-11
+
+experience:
+  - id: cicada
+    organization: Cicada
+    sector: Fintech — plataforma de trading
+    role_es: Ingeniero de Software
+    role_en: Software Engineer
+    start_date: "2024-01"
+    end_date: "2026-05"
+    domain: >-
+      Sistemas de post-trade y liquidación para operaciones institucionales de bonos.
+    technologies:
+      [Python, Go, SQL, PostgreSQL, FastAPI, REST, Docker, Git, GitHub Actions,
+       AWS S3, MinIO, Linux, Vault, Argo, React, Redux, shadcn/ui]
+    highlights:
+      - id: posttrade_ownership
+        proficiency: PROVEN
+        domains: [backend, finance]
+        es: >-
+          Responsable del microservicio de Post-Trade, automatizando instrucciones de
+          liquidación para operaciones institucionales de bonos con múltiples tipos de
+          contraparte.
+      - id: compliance_screening
+        proficiency: PROVEN
+        domains: [data, backend, finance]
+        es: >-
+          Diseñé un motor de validación de cumplimiento para screening de listas de
+          sanciones OFAC, integrando múltiples algoritmos de coincidencia para asegurar
+          precisión de datos y reducir falsos positivos.
+      - id: report_aggregation
+        proficiency: PROVEN
+        domains: [data, backend, ops]
+        es: >-
+          Desarrollé un servicio centralizado de agregación de reportes que consumía datos
+          de múltiples microservicios, consolidando información entre dominios en reportes
+          estructurados bajo demanda.
+      - id: incremental_reporting
+        proficiency: PROVEN
+        domains: [data, ops, automation]
+        es: >-
+          Implementé un sistema de reportes operativos incrementales que agregaba datos
+          transaccionales diarios y automatizaba fusiones mediante cron jobs, reduciendo
+          trabajo manual recurrente.
+      - id: settlement_automation
+        proficiency: PROVEN
+        domains: [ops, automation, backend]
+        es: >-
+          Automaticé procesos operativos de liquidación con un sistema de booking basado en
+          cron para procesamiento en lote, reduciendo la carga operativa manual.
+      - id: observability
+        proficiency: PROVEN
+        domains: [data, ops]
+        es: >-
+          Construí observabilidad del estado de liquidación mediante logging estructurado y
+          métricas a nivel unitario, facilitando el diagnóstico de incidentes por el equipo.
+      - id: data_modeling
+        proficiency: PROVEN
+        domains: [data, backend]
+        es: >-
+          Diseñé modelos de datos y esquemas SQL/PostgreSQL para flujos de liquidación, con
+          validaciones de límites de líneas, restricciones de efectivo e instituciones
+          intermediarias.
+      - id: advanced_search
+        proficiency: PROVEN
+        domains: [backend, data]
+        es: >-
+          Implementé una API flexible para filtrado avanzado y búsqueda compleja sobre listas
+          de gran volumen, soportando consultas multi-tabla dinámicas optimizadas vía ORM.
+      - id: microservice_migration
+        proficiency: PROVEN
+        domains: [backend]
+        es: >-
+          Migré gradualmente funcionalidades de un sistema monolítico a arquitectura de
+          microservicios siguiendo principios hexagonales y orientados a eventos.
+      - id: s3_storage
+        proficiency: PROVEN
+        domains: [cloud, data, ops]
+        es: >-
+          Almacené y distribuí reportes mediante AWS S3 y MinIO en entorno local, generando
+          enlaces de descarga para usuarios finales.
+      - id: fullstack_terms
+        proficiency: PROVEN
+        domains: [frontend, backend]
+        es: >-
+          Mejoré el módulo de Términos de Uso con una interfaz en React, Redux y shadcn/ui,
+          integrando un editor de texto enriquecido, APIs REST, verificación periódica de
+          nuevas versiones y un dashboard de BackOffice para monitorear la aceptación de los
+          usuarios.
+      - id: end_to_end_features
+        proficiency: PROVEN
+        domains: [backend, frontend]
+        es: >-
+          Tomé responsabilidad end-to-end de features: desde el levantamiento del
+          requerimiento y las decisiones de producto hasta la integración final entre
+          frontend y backend.
+      - id: abm_simulation
+        proficiency: PROJECT
+        domains: [ai, data, finance]
+        es: >-
+          Desarrollé un POC exploratorio de simulación basada en agentes (Mesa/Python) para
+          evaluar escenarios operativos de liquidación como apoyo a la toma de decisiones.
+        caveat: Fue un POC exploratorio, no un sistema en producción.
+      # Two entries below are FAMILIAR, not PROVEN. The distinction is load-bearing:
+      # the agent must never present them as operator-level expertise.
+      - id: logging_monitoring
+        proficiency: FAMILIAR
+        domains: [ops, cloud]
+        es: >-
+          Implementé logging estructurado que alimentaba ecosistemas de monitoreo con Datadog
+          y CloudWatch.
+        caveat: >-
+          Sus compañeros tenían el acceso directo a Datadog y CloudWatch. Él implementó el
+          logging que alimentaba esos sistemas. Presentar como familiaridad, nunca como
+          operador de esas herramientas.
+      - id: vault_argo
+        proficiency: FAMILIAR
+        domains: [cloud, devops]
+        es: >-
+          Gestioné secretos con Vault y despliegues con Argo, ajustando configuraciones de
+          infraestructura de la aplicación.
+        caveat: >-
+          Usó infraestructura existente montada por otros; ajustó configuraciones, no
+          construyó la infraestructura. Presentar como familiaridad, nunca como platform
+          engineer.
+
+  - id: ayari-tech
+    organization: Ayari Tech
+    sector: Consultoría y producto
+    role_es: Colaborador (proyectos, no relación laboral formal)
+    start_date: "2026-08"
+    end_date: null
+    domain: >-
+      Dos frentes: el track de research de IA conversacional para el Instituto Newman, y
+      contribuciones de código a la plataforma Don Chambas.
+    presentation_rule: >-
+      Presentar siempre bajo Proyectos, nunca bajo Experiencia Profesional. No es una
+      relación laboral formal ni una posición fundadora.

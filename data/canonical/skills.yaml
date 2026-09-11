@@ -1,0 +1,151 @@
+# Every skill carries its proficiency tag. The tags are not decoration: the
+# structured `list_skills` tool always returns the tag alongside the skill name,
+# so the model is never handed a bare skill it could present as expertise.
+#
+#   PROVEN      -> professional production experience; core expertise.
+#   EXPERIENCED -> solid working knowledge; a skill, not deep expertise.
+#   FAMILIAR    -> some exposure. Say "familiaridad con", never "experto en".
+#   LEARNING    -> actively studying. NEVER present as professional experience.
+#   PROJECT     -> personal or academic project only, not professional work.
+source_id: master.md#technical-skills
+updated_at: 2026-09-11
+
+categories:
+  languages:
+    label: Lenguajes
+    skills:
+      - { name: Python,     proficiency: PROVEN,      domains: [backend, data, ai] }
+      - { name: Go,         proficiency: PROVEN,      domains: [backend] }
+      - { name: SQL,        proficiency: PROVEN,      domains: [data, backend] }
+      - { name: Bash,       proficiency: PROVEN,      domains: [devops, automation] }
+      - { name: TypeScript, proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: JavaScript, proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: R,          proficiency: FAMILIAR,    domains: [data, statistics] }
+      - { name: Java / Spring Boot, proficiency: LEARNING, domains: [backend],
+          note: "Preparado para una evaluación técnica; sin experiencia profesional." }
+
+  backend:
+    label: Backend
+    skills:
+      - { name: FastAPI,        proficiency: PROVEN,      domains: [backend] }
+      - { name: REST APIs,      proficiency: PROVEN,      domains: [backend] }
+      - { name: PostgreSQL,     proficiency: PROVEN,      domains: [data, backend] }
+      - { name: Microservicios, proficiency: PROVEN,      domains: [backend] }
+      - { name: Arquitectura hexagonal, proficiency: PROVEN, domains: [backend] }
+      - { name: Diseño orientado a eventos, proficiency: EXPERIENCED, domains: [backend] }
+      - { name: SQLAlchemy,     proficiency: EXPERIENCED, domains: [backend] }
+      - { name: Alembic,        proficiency: EXPERIENCED, domains: [backend] }
+      - { name: Kafka / RabbitMQ / Redis, proficiency: LEARNING, domains: [backend],
+          note: "Evaluados como requisito de vacantes; sin experiencia práctica." }
+
+  cloud_devops:
+    label: Cloud / DevOps
+    skills:
+      - { name: Linux,          proficiency: PROVEN,      domains: [devops] }
+      - { name: Docker,         proficiency: PROVEN,      domains: [devops] }
+      - { name: Git,            proficiency: PROVEN,      domains: [devops] }
+      - { name: GitHub Actions, proficiency: PROVEN,      domains: [devops] }
+      - { name: cron,           proficiency: PROVEN,      domains: [automation, ops] }
+      - { name: AWS S3,         proficiency: PROVEN,      domains: [cloud] }
+      - { name: MinIO,          proficiency: EXPERIENCED, domains: [cloud] }
+      - { name: Railway,        proficiency: EXPERIENCED, domains: [cloud] }
+      - { name: Vercel,         proficiency: EXPERIENCED, domains: [cloud] }
+      - { name: Supabase,       proficiency: EXPERIENCED, domains: [cloud] }
+      - { name: LocalStack,     proficiency: PROJECT,     domains: [cloud, devops] }
+      - { name: Vault,          proficiency: FAMILIAR,    domains: [cloud],
+          note: "Usó una instalación existente; no construyó la infraestructura." }
+      - { name: Argo,           proficiency: FAMILIAR,    domains: [devops],
+          note: "Usó una instalación existente; no construyó la infraestructura." }
+      - { name: Kubernetes / EKS, proficiency: LEARNING,  domains: [cloud, devops] }
+      - { name: Karpenter / KEDA / HPA, proficiency: LEARNING, domains: [cloud] }
+      - { name: IAM avanzado (AWS), proficiency: LEARNING, domains: [cloud] }
+      - { name: Platform engineering, proficiency: LEARNING, domains: [devops] }
+      - { name: Spark,          proficiency: LEARNING,    domains: [data] }
+
+  observability:
+    label: Observabilidad
+    skills:
+      - { name: Logging estructurado, proficiency: PROVEN, domains: [ops] }
+      - { name: Métricas de aplicación, proficiency: EXPERIENCED, domains: [ops] }
+      - { name: Datadog,    proficiency: FAMILIAR, domains: [ops],
+          note: "Implementó el logging que alimentaba Datadog; no fue operador de la herramienta." }
+      - { name: CloudWatch, proficiency: FAMILIAR, domains: [ops],
+          note: "Implementó el logging que alimentaba CloudWatch; no fue operador de la herramienta." }
+
+  ai_ml:
+    label: IA / Machine Learning
+    skills:
+      - { name: Prompt engineering, proficiency: EXPERIENCED, domains: [ai] }
+      - { name: Anthropic SDK / Claude API, proficiency: EXPERIENCED, domains: [ai],
+          note: "Bucle tool_use / tool_result, prompt caching, agente conversacional en un producto real." }
+      - { name: Claude Code,  proficiency: EXPERIENCED, domains: [ai] }
+      - { name: Factory AI,   proficiency: EXPERIENCED, domains: [ai] }
+      - { name: RAG,          proficiency: PROJECT, domains: [ai, data],
+          note: "RAG de recuperación con grounding verificable, implementado sin LLM en el lazo de composición." }
+      - { name: Embeddings / búsqueda vectorial, proficiency: PROJECT, domains: [ai, data],
+          note: "sentence-transformers locales, VectorStore coseno propio en numpy, barrido de cinco encoders." }
+      - { name: Evaluación de sistemas LLM / retrieval, proficiency: PROJECT, domains: [ai, statistics],
+          note: "Casos golden, probes fuera de dominio, recall@k, MRR, latencia p95, umbrales ejecutables." }
+      - { name: scikit-learn (TF-IDF, regresión logística), proficiency: PROJECT, domains: [ai, data] }
+      - { name: Arquitectura de agentes de IA, proficiency: PROJECT, domains: [ai] }
+      - { name: LiteLLM,      proficiency: FAMILIAR, domains: [ai] }
+      - { name: Chatwoot,     proficiency: FAMILIAR, domains: [ai, ops] }
+      - { name: MCP (Model Context Protocol), proficiency: FAMILIAR, domains: [ai] }
+      - { name: NLP,          proficiency: FAMILIAR, domains: [ai, data] }
+      - { name: PyTorch,      proficiency: FAMILIAR, domains: [ai],
+          note: "Setup CUDA/GPU para inferencia de Whisper." }
+      - { name: Whisper,      proficiency: PROJECT, domains: [ai] }
+      - { name: Ollama (modelos locales), proficiency: FAMILIAR, domains: [ai] }
+      - { name: Agent-Based Modeling (Mesa), proficiency: PROJECT, domains: [ai, data, finance] }
+      - { name: Keras,        proficiency: LEARNING, domains: [ai] }
+      - { name: Cuantización de modelos, proficiency: LEARNING, domains: [ai] }
+      - { name: ML avanzado / ingeniería LLM en producción, proficiency: FAMILIAR, domains: [ai] }
+
+  data_math:
+    label: Datos / Matemáticas / Estadística
+    skills:
+      - { name: Modelado de datos, proficiency: PROVEN, domains: [data] }
+      - { name: Análisis exploratorio, proficiency: EXPERIENCED, domains: [data, statistics] }
+      - { name: Inferencia estadística, proficiency: EXPERIENCED, domains: [statistics] }
+      - { name: Probabilidad, proficiency: EXPERIENCED, domains: [statistics] }
+      - { name: Métodos numéricos, proficiency: EXPERIENCED, domains: [statistics] }
+      - { name: Minería de datos, proficiency: EXPERIENCED, domains: [data] }
+      - { name: pandas / numpy, proficiency: EXPERIENCED, domains: [data] }
+      - { name: Power BI, proficiency: FAMILIAR, domains: [data],
+          note: "Explorado por aprendizaje; no uso profesional." }
+
+  frontend:
+    label: Frontend (de apoyo, no principal)
+    skills:
+      - { name: React,   proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: Next.js, proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: Redux,   proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: "TanStack (Query, Table)", proficiency: EXPERIENCED, domains: [frontend] }
+      - { name: shadcn/ui, proficiency: EXPERIENCED, domains: [frontend] }
+
+  tooling:
+    label: Herramientas de desarrollo
+    skills:
+      - { name: tmux,         proficiency: PROVEN,      domains: [devops] }
+      - { name: Helix,        proficiency: EXPERIENCED, domains: [devops] }
+      - { name: Devbox / Nix, proficiency: EXPERIENCED, domains: [devops] }
+      - { name: direnv,       proficiency: EXPERIENCED, domains: [devops] }
+      - { name: just,         proficiency: PROJECT,     domains: [devops, automation] }
+      - { name: WSL2,         proficiency: FAMILIAR,    domains: [devops] }
+
+  practices:
+    label: Prácticas
+    skills:
+      - { name: Documentación técnica, proficiency: PROVEN, domains: [ops, backend] }
+      - { name: Runbooks operativos,   proficiency: PROVEN, domains: [ops] }
+      - { name: Clean Code,            proficiency: PROVEN, domains: [backend] }
+      - { name: Agile / Scrum,         proficiency: PROVEN, domains: [backend] }
+      - { name: Patrones de diseño,    proficiency: EXPERIENCED, domains: [backend] }
+
+domain_knowledge:
+  label: Conocimiento de dominio (Fintech / Bonos / Post-trade)
+  items:
+    - Liquidación de bonos, instrucciones de liquidación, trading institucional
+    - "ISINs, yield, duration, Make Whole, Par Call"
+    - Screening de sanciones OFAC y validación de cumplimiento
+    - Límites de líneas, restricciones de efectivo, instituciones intermediarias

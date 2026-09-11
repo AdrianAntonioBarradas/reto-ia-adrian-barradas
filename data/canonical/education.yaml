@@ -1,0 +1,37 @@
+source_id: master.md#education
+updated_at: 2026-09-11
+
+education:
+  - id: unam-mac
+    institution: UNAM — FES Acatlán
+    degree_es: Licenciatura en Matemáticas Aplicadas y Computación
+    degree_en: B.Sc. in Applied Mathematics and Computer Science
+    years: "2019 – 2023"
+    gpa: "9.39/10"
+    status_es: Estudios concluidos — acta de calificaciones obtenida, título en trámite
+    status_en: Studies completed — final grades certificate obtained, degree pending
+    foundation:
+      - Matemáticas, probabilidad y estadística
+      - Algoritmos y estructuras de datos
+      - Métodos numéricos y matemáticas computacionales
+      - Análisis de datos y ciencias de la computación
+
+  - id: unam-diploma-stats
+    institution: UNAM — FES Acatlán
+    degree_es: Diplomado en Métodos Estadísticos y Minería de Datos
+    degree_en: Diploma — Statistical Methods and Data Mining
+    years: "2024 – 2025"
+    foundation:
+      - Inferencia estadística
+      - Minería de datos y pruebas estadísticas
+      - Análisis exploratorio
+      - Fundamentos de machine learning
+
+  - id: filosofia
+    institution: Instituto de Estudios Superiores Rafael Guízar Valencia
+    degree_es: Licenciatura en Filosofía
+    degree_en: B.A. in Philosophy
+    years: "2014 – 2018"
+    note: >-
+      Aporta razonamiento analítico, pensamiento crítico, argumentación formal y
+      comunicación escrita. Se menciona sólo cuando la pregunta lo hace relevante.

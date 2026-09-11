@@ -1,0 +1,101 @@
+# Public projection of the master career profile.
+#
+# PRIVACY BOUNDARY: this file is derived by hand from
+# /home/adrian/resumes_cv/source/master.md, and the derivation is subtractive.
+# Fields deliberately absent — never redacted downstream, never present here:
+#   - phone number
+#   - the circumstances under which the Cicada role ended
+#   - compensation, of any kind
+#   - recruiter activity, assessments taken, and the roles being pursued
+#   - the Banorte selection process itself
+# The agent cannot disclose what was never ingested. See docs/SECURITY.md.
+
+source_id: master.md#personal-information
+updated_at: 2026-09-11
+
+name: Adrián Antonio Barradas Cerna
+email: adriatico.bace@gmail.com
+location: Estado de México, México
+headline: >-
+  Ingeniero de Software con experiencia en fintech, enfocado en backend, datos y
+  sistemas conversacionales de IA, con formación en matemáticas aplicadas.
+
+languages:
+  - { name: Español, level: Nativo }
+  - { name: Inglés,  level: Avanzado }
+  - { name: Alemán,  level: Básico }
+
+# Pre-written positioning summaries. The agent picks the one that fits the
+# question being asked rather than reciting all of them.
+summaries:
+  - id: backend
+    label: Backend Engineer
+    es: >-
+      Ingeniero Full-Stack con experiencia end-to-end en plataformas SaaS de fintech:
+      desde el diseño de esquemas y pipelines de datos en Go y PostgreSQL hasta la
+      construcción de interfaces en React / Next.js integradas con servicios backend
+      en Go. Enfocado en arquitectura limpia, automatización de operaciones y entrega
+      de impacto directo al negocio.
+    en: >-
+      Software Engineer with over 2 years of experience in fintech, focused on backend
+      development and scalable microservices. Strong background in Go, Python and SQL,
+      with emphasis on REST APIs, hexagonal architecture and event-driven design.
+  - id: data-ai
+    label: Data / AI Engineer
+    es: >-
+      Ingeniero de Software con experiencia en fintech, enfocado en operaciones de datos,
+      automatización de procesos y observabilidad. Sólido dominio de Python, SQL y Linux,
+      con práctica en pipelines de datos, generación de reportes operativos y validación
+      de información.
+    en: >-
+      Software Engineer with an Applied Mathematics and Statistics background, combining
+      backend engineering, SQL, Python, statistical analysis and machine-learning
+      foundations.
+  - id: conversational-ai
+    label: AI / Conversational Systems Engineer
+    es: >-
+      Ingeniero de Software con experiencia en fintech y foco en sistemas conversacionales
+      de IA: diseño, construcción y evaluación medida de estrategias de ruteo y recuperación
+      para chatbots en español. Construí un framework comparativo de cuatro enfoques sobre
+      un mismo arnés de evaluación con casos golden, probes de rechazo, recall@k, MRR y
+      umbrales de aceptación ejecutables. Base en matemáticas aplicadas y estadística, con
+      criterio para elegir arquitecturas y justificar la elección con números.
+    en: >-
+      Software Engineer with fintech experience and a focus on conversational AI systems:
+      designing, building and measuring routing and retrieval strategies for
+      Spanish-language chatbots, on a shared evaluation harness with golden cases, refusal
+      probes, recall@k, MRR and executable acceptance thresholds.
+  - id: ai-ops
+    label: AI Operations Engineer
+    es: >-
+      Ingeniero de Software Full-Stack con experiencia en fintech y dominio práctico de
+      herramientas de IA generativa. Combino desarrollo en Python y TypeScript con
+      automatización de procesos operativos, prototipado rápido y descomposición de
+      operaciones complejas en flujos estructurados. Experiencia creando prompts avanzados,
+      configurando agentes con contexto estructurado y construyendo prototipos con LLMs y RAG.
+    en: >-
+      Full-Stack Software Engineer with fintech experience and practical mastery of
+      generative AI tooling: advanced prompting, agents with structured context, and
+      LLM/RAG prototypes.
+
+strengths:
+  - Ingeniería backend — su especialización más probada.
+  - Go y Python como combinación para roles de backend, datos e IA.
+  - SQL y datos, por encima del promedio de un desarrollador de aplicaciones.
+  - Fundamento matemático, diferenciador para trabajo analítico y algorítmico.
+  - Comprensión de dominio fintech con procesos de negocio complejos.
+  - Pensamiento de sistemas: servicios, bases de datos, colas, procesos programados, APIs.
+  - Mentalidad de automatización.
+  - Exploración técnica autodirigida — entender los sistemas por debajo de las abstracciones.
+  - Herramental práctico de IA: uso diario de agentes de código, prompting, RAG.
+  - >-
+    Evaluación y medición de sistemas de IA: conjuntos de prueba retenidos, métricas de
+    recuperación, umbrales ejecutables, y disposición a reportar resultados negativos y
+    retractar conclusiones propias. Es su diferenciador más fuerte para roles de IA frente
+    a perfiles que sólo integran APIs de LLM.
+
+working_style:
+  - Desarrollador centrado en terminal (Helix, tmux, Ghostty, bash).
+  - Usa agentes de código de IA como pareja de desarrollo diaria.
+  - Valora entender los sistemas por debajo de las abstracciones.
+  - Propenso a la exploración profunda; gestiona el foco con Pomodoro y seguimiento de tareas.

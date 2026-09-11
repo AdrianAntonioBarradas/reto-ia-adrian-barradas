@@ -1,0 +1,157 @@
+# Every project carries an `attribution` field. This is the machine-readable form of
+# the "Nota para la IA" lines in master.md, and it is what stops the agent from
+# claiming credit for work that is not Adrián's.
+#
+#   own          -> built by Adrián; safe to describe as his.
+#   contribution -> he contributed code to someone else's product; never "his product".
+#   not_mine     -> explicitly built by someone else; the agent must say so.
+source_id: master.md#projects
+updated_at: 2026-09-11
+
+projects:
+  - id: newman-eval-framework
+    name: Framework de Evaluación de Estrategias de Chatbot — Instituto Newman
+    attribution: own
+    proficiency: PROJECT
+    domains: [ai, data, backend]
+    period: "2026-08"
+    context: >-
+      Track de research de IA conversacional para el Instituto Newman (institución mexicana
+      de formación en psicología), en colaboración con Ayari Tech.
+    problem: >-
+      Elegir una estrategia de ruteo para un chatbot de atención en español sin poder
+      justificar la elección con evidencia: las cuatro alternativas obvias no eran
+      comparables entre sí.
+    solution: >-
+      Framework comparativo de cuatro estrategias sobre un mismo modelo de dominio, pipeline
+      de contenido y arnés de evaluación: (1) reglas por keywords como línea base de
+      contraste, (2) router semántico con embeddings locales sentence-transformers y umbrales
+      de confianza y margen, (3) clasificador TF-IDF + regresión logística con extracción de
+      entidades por reglas, y (4) RAG de recuperación con VectorStore coseno propio en numpy
+      y doble compuerta de grounding que exige que cada segmento de la respuesta sea cita
+      textual de una fuente citada. Compuerta de política previa al ruteo: consultas legales,
+      médicas de emergencia, de acoso o de angustia emocional escalan siempre a humano sin
+      citar FAQ.
+    impact: >-
+      Taxonomía de 18 intents, corpus de 47 entradas FAQ y 417 variantes de paráfrasis en
+      español mexicano generadas bajo restricciones ejecutables para evitar entrenar sobre el
+      conjunto de prueba. Inferencia totalmente offline y determinista. 519 tests, Python 3.12
+      con mypy strict y ruff.
+    technologies:
+      [Python 3.12, sentence-transformers, scikit-learn, numpy, Pydantic, pytest, mypy, ruff,
+       devbox, pipenv, just]
+
+  - id: llm-eval-harness
+    name: Arnés de Evaluación y Medición de Sistemas LLM/Retrieval
+    attribution: own
+    proficiency: PROJECT
+    domains: [ai, data, statistics]
+    period: "2026-08"
+    problem: >-
+      Sin medición, "el chatbot mejoró" es una opinión. Y peor: una métrica sola puede mentir.
+    solution: >-
+      Arnés compartido con casos golden derivados del catálogo de intents, sets de paráfrasis,
+      escenarios multi-turno y probes fuera de dominio que *deben* escalar a humano. Métricas
+      de exactitud, latencia media y p95, recall@k, MRR, rank medio y pico de RSS, con
+      umbrales de aceptación ejecutables y un resolvedor de presupuesto de memoria por modelo.
+    impact: >-
+      El barrido comparativo de cinco encoders detectó un confundido entre recall y rechazo:
+      los modelos con mejor recall escalaban 0 de 5 probes fuera de dominio. No recuperaban
+      mejor — fallaban en negarse. Eso obligó a recalibrar el umbral por modelo en vez de
+      adoptar el encoder aparentemente superior. Aparte, detectó y corrigió una
+      no-determinación entre procesos (orden de iteración de frozenset combinado con la
+      aleatorización del hash de strings) que hacía que tres invocaciones idénticas produjeran
+      tres resultados distintos, incluido un cambio de escalar a no escalar; retiró la
+      conclusión previamente publicada que esa medición invalidaba.
+    technologies: [Python, numpy, scikit-learn, pytest]
+    why_it_matters: >-
+      Reportar un resultado negativo y retractar una conclusión propia es la evidencia más
+      directa de criterio técnico. Responde a "¿cómo verificas que el sistema es confiable?"
+      con un caso real en vez de una promesa.
+
+  - id: don-chambas
+    name: Don Chambas — Plataforma de Reclutamiento WhatsApp-First
+    attribution: contribution
+    proficiency: PROJECT
+    domains: [ai, backend, frontend]
+    period: "2026-08-31"
+    attribution_note: >-
+      Adrián contribuye código a un producto de terceros. Presentar siempre como
+      contribución, nunca como propiedad ni autoría del producto completo.
+    context: >-
+      Plataforma de reclutamiento para negocios de servicio en México, construida alrededor de
+      un agente conversacional de WhatsApp con el SDK de Anthropic y Chatwoot autoalojado.
+    contribution: >-
+      Trabajo en el endurecimiento del agente, un visor nativo de Chatwoot dentro del
+      backoffice, y un banco de pruebas para conversar con el agente real sin pasar por
+      WhatsApp.
+    technologies:
+      [Python 3.12, FastAPI, SQLAlchemy async, Alembic, PostgreSQL, Redis, Anthropic SDK,
+       Next.js, React, TypeScript, Railway, Vercel]
+
+  - id: newman-production-bot
+    name: Bot de producción del Instituto Newman (Chatwoot + LiteLLM + Supabase en Railway)
+    attribution: not_mine
+    attribution_note: >-
+      Construido por el socio de Ayari Tech, NO por Adrián. Si alguien pregunta si él lo
+      construyó, la respuesta es no. Su trabajo en Newman fue el track de research
+      (ver newman-eval-framework).
+    domains: [ai]
+
+  - id: localstack-lab
+    name: Laboratorio AWS Local (LocalStack)
+    attribution: own
+    proficiency: PROJECT
+    domains: [cloud, devops]
+    solution: >-
+      Entorno local para desarrollar y probar servicios serverless sin depender de
+      infraestructura en la nube. Construido sobre dos laptops conectadas por Ethernet:
+      un Ubuntu LTS como cliente y un Ubuntu Server como host. Docker Compose para orquestar
+      LocalStack. Pipeline completo Lambda + DynamoDB + API Gateway construido end-to-end con
+      una app CRUD de notas. Automatización con justfile y awslocal CLI.
+    technologies: [LocalStack, Docker Compose, AWS Lambda, DynamoDB, API Gateway, S3, SQS,
+                   EventBridge, just, Linux, SSH]
+    why_it_matters: >-
+      Demuestra entender cómo funcionan los servicios de AWS, no sólo consumirlos.
+
+  - id: whisper-diarization
+    name: Transcripción de Audio con Whisper + Diarización
+    attribution: own
+    proficiency: PROJECT
+    domains: [ai]
+    solution: >-
+      Configuración de Whisper para transcripción con identificación de hablantes. Setup de
+      PyTorch con CUDA para aceleración por GPU en WSL2, resolviendo problemas de
+      compatibilidad entre drivers NVIDIA, WSL2 y passthrough de GPU.
+    technologies: [Whisper, PyTorch, CUDA, WSL2]
+
+  - id: terminal-pomodoro
+    name: Pomodoro Terminal con Tracking de Actividad
+    attribution: own
+    proficiency: PROJECT
+    domains: [devops, automation]
+    solution: >-
+      Herramienta de productividad en terminal con temporizador Pomodoro, configuración de
+      tareas en TOML, tags por categoría, estimaciones de tiempo y retro diario. Diseñada para
+      contrarrestar la tendencia a caer en rabbit holes de investigación.
+    technologies: [Bash, TOML, Linux]
+
+  - id: ecobici-analysis
+    name: Análisis ECOBICI / GBFS
+    attribution: own
+    proficiency: PROJECT
+    domains: [data, statistics]
+    solution: >-
+      Análisis de datos de bicicletas compartidas (~223,950 registros de viaje, 667 estaciones,
+      datos GBFS del 1 al 8 de marzo de 2024) con limpieza, análisis exploratorio y estadística.
+    technologies: [Python, pandas, estadística]
+
+  - id: terminal-dev-env
+    name: Entorno de Desarrollo Terminal (tmux + Helix)
+    attribution: own
+    proficiency: PROJECT
+    domains: [devops, automation]
+    solution: >-
+      Sistema de productividad basado en terminal que integra editor (Helix), REPLs, paneles
+      tmux, timers, seguimiento de tareas y automatización de flujos de trabajo.
+    technologies: [Helix, tmux, bash, Ghostty]
