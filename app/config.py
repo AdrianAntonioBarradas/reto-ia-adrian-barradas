@@ -1,0 +1,79 @@
+"""Application settings.
+
+Two conventions carried over from production practice and worth keeping:
+
+* ``environment`` defaults to ``production`` so that a *missing* variable fails
+  closed rather than silently enabling development behaviour.
+* An empty secret means the feature is disabled, never that it is open. The API
+  key check in particular has no development bypass.
+"""
+
+from __future__ import annotations
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+RetrievalMode = Literal["context", "structured", "dense", "hybrid"]
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    environment: Literal["development", "production"] = "production"
+
+    # --- Data ---------------------------------------------------------------
+    database_url: str = "postgresql://cvagent:cvagent@localhost:5433/cvagent"
+
+    # --- Public API ---------------------------------------------------------
+    # The bearer token the Reto IA platform sends. Empty => every request is
+    # refused, in every environment. See app/api/security.py.
+    agent_api_key: str = ""
+    public_base_url: str = "http://localhost:8000"
+    agent_name: str = "Adrián Barradas — Agente de CV"
+
+    # --- LLM ----------------------------------------------------------------
+    # One OpenAI-compatible adapter covers Google AI Studio, Cerebras, Groq and
+    # OpenAI. Switching provider is three environment variables, not a code change.
+    llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    llm_api_key: str = ""
+    llm_model: str = "gemini-2.5-flash"
+    llm_max_output_tokens: int = 1024
+    llm_temperature: float = 0.2
+    llm_timeout_s: float = 45.0
+
+    # --- Embeddings ---------------------------------------------------------
+    # Local ONNX. No API key, deterministic, and the same encoder family whose
+    # thresholds were calibrated on Spanish text in prior work.
+    embeddings_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    embeddings_dim: int = 384
+
+    # --- Retrieval ----------------------------------------------------------
+    # The ladder switch: one pipeline, four modes, one evaluation set.
+    retrieval_mode: RetrievalMode = "hybrid"
+    retrieval_top_k: int = Field(default=6, ge=1, le=20)
+    retrieval_candidates: int = Field(default=20, ge=1, le=100)
+
+    # --- Ceilings -----------------------------------------------------------
+    max_tool_iterations: int = Field(default=6, ge=1, le=12)
+    rate_limit_per_minute: int = Field(default=30, ge=1)
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_asyncpg_driver(cls, value: str) -> str:
+        """Hosting platforms hand out ``postgresql://``; SQLAlchemy async needs the driver."""
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return value
+
+    @property
+    def is_production(self) -> bool:
+        return self.environment == "production"
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Cached so importing a module never triggers environment reads twice."""
+    return Settings()
