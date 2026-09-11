@@ -327,6 +327,66 @@ build rota.
 
 ---
 
+## DEC-014 — El modo de producción es `context`, porque eso dice la medición
+
+**Decisión:** `RETRIEVAL_MODE=context` por defecto. El perfil curado completo va en el
+prompt; no hay recuperación en la ruta de producción.
+
+**Medición** (`docs/EVALUATION-LADDER.md`, cuatro modos × 42 casos, la recuperación
+como única variable):
+
+| Modo | Sin falsedades | Cobertura | p50 | Tokens |
+|---|---:|---:|---:|---:|
+| `context` | 42/42 | **0.76** | **2.8 s** | **9,406** |
+| `structured` | 42/42 | 0.54 | 4.1 s | 54,223 |
+| `dense` | 42/42 | 0.68 | 4.0 s | 54,576 |
+| `hybrid` | 42/42 | 0.71 | 3.9 s | 62,086 |
+
+La línea base gana en **todos** los ejes medidos: mejor cobertura, menor latencia y
+una sexta parte de los tokens. Los cuatro modos son igual de honestos.
+
+**Por qué gana.** Con 135 chunks el perfil entero cabe holgadamente en el prompt, así
+que recuperar sólo puede quitar contexto que el modelo habría usado. Además los modos
+con herramientas gastan varias llamadas por turno —cada una reenviando el prompt de
+sistema y los esquemas de herramientas—, lo que explica el factor 6 en tokens.
+
+**Por qué el trabajo de recuperación no fue en balde:**
+
+1. La pregunta "¿hace falta RAG aquí?" ahora tiene una respuesta con números en vez de
+   una intuición. Ésa es la respuesta que el reto pide.
+2. Deja de ganar en cuanto el corpus no quepa en un prompt, y volver es una variable.
+3. La escalera detectó fallos reales de contenido —`ISIN`, Kubernetes— que
+   contaminaban igual al modo `context`, porque los chunks son la misma fuente.
+
+**Lo que se pierde al elegir `context`:** la respuesta ya no trae IDs de evidencia
+recuperada, así que la trazabilidad es más débil. Es el costo real de esta decisión y
+sería la razón para revertirla antes que cualquier otra.
+
+> Enviar el modo que mis propios datos dicen que es peor habría vuelto decorativa la
+> medición. El punto de medir es dejar que el resultado decida.
+
+---
+
+## DEC-015 — Correr la especificación ejecutable, no mi lectura de ella
+
+**Qué pasó:** el tester oficial de Open Responses, corrido contra el endpoint
+desplegado, dio **1 de 17**. En ese momento `tests/api/` tenía doce pruebas de
+contrato y todas pasaban.
+
+**Por qué no sirvieron de nada:** la misma lectura incompleta de la especificación
+escribió las pruebas y la implementación. Una prueba escrita desde tu propia lectura
+sólo puede confirmar esa lectura, nunca contradecirla. Faltaban **23 de los 31 campos
+requeridos** del objeto de respuesta —el esquema no tiene propiedades opcionales, cosa
+que la prosa no deja ver.
+
+**Progresión:** 1/10 → 6/10 (campos requeridos) → 7/10 (SSE) → **8/10** (herramientas
+del cliente y normalización de `tools`). Detalle en `docs/COMPLIANCE.md`.
+
+**La lección operativa**, y es la que me llevo: cuando existe una especificación
+ejecutable, correrla es lo primero, no lo último. Estuvo disponible todo el tiempo.
+
+---
+
 ## Referencias
 
 El diseño se apoya en trabajo publicado. Se listan porque una decisión defendida con

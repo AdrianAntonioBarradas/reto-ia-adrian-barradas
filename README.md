@@ -10,10 +10,14 @@ compatible con **Open Responses**. Construido para el Reto IA Banorte.
 > evidencia recuperada, no sólo rellenar un hueco.
 
 ```
-POST /v1/responses                 contrato Open Responses
+POST /v1/responses                 contrato Open Responses (streaming y no-streaming)
 GET  /health                       503 si falta una dependencia, no 200 con bandera
 GET  /.well-known/agent-card.json  tarjeta A2A: registro en un solo pegado
 ```
+
+**8 de 10 pruebas HTTP** del tester oficial de Open Responses, contra el endpoint
+desplegado. Ver [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — incluida la primera
+corrida, que dio 1 de 17 mientras mis doce pruebas de contrato pasaban.
 
 ---
 
@@ -68,6 +72,8 @@ Diagrama y detalle: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 | **Honestidad como dato** | Un modelo servicial bajo presión de encaje suaviza un "no" hasta que parece un "sí" | [DEC-004](docs/DECISIONS.md#dec-004--la-política-de-honestidad-es-un-dato-estructurado-no-prosa) |
 | **Contrato primero** | Una recuperación perfecta detrás de un endpoint no conforme vale cero | [DEC-005](docs/DECISIONS.md#dec-005--contrato-primero-calidad-después) |
 | **Híbrido sobre denso** | Medido: recall 0.879 vs 0.818 en el mismo conjunto de casos | [DEC-008](docs/DECISIONS.md#dec-008--recuperación-híbrida-elegida-por-medición) |
+| **Producción sin recuperación** | La línea base ganó la medición end-to-end. Enviar lo que mis datos dicen que es peor habría vuelto decorativa la medición | [DEC-014](docs/DECISIONS.md#dec-014--el-modo-de-producción-es-context-porque-eso-dice-la-medición) |
+| **Correr la especificación ejecutable** | 1/17 la primera vez, con mis doce pruebas propias en verde | [DEC-015](docs/DECISIONS.md#dec-015--correr-la-especificación-ejecutable-no-mi-lectura-de-ella) |
 | **Un contenedor en Railway** | Sin estado, sin base de datos; la latencia la domina el LLM | [DEC-013](docs/DECISIONS.md#dec-013--despliegue-en-railway-y-el-archivo-de-configuración-que-ya-no-sirve) |
 
 ---
@@ -100,7 +106,7 @@ que una evaluación con modelo nunca puede permitirse.
 
 **Respuestas** — 42 casos contra el agente real ([`docs/EVALUATION-ANSWERS.md`](docs/EVALUATION-ANSWERS.md)):
 
-**42/42 sin ninguna afirmación falsa**, con `claude-sonnet-5` y recuperación híbrida.
+**42/42 sin ninguna afirmación falsa**, con `claude-sonnet-5`.
 Latencia p50 ~4 s, dominada por el LLM. La calificación es determinista —coincidencia
 de subcadenas con conciencia de negación, sin modelo juez—: más tosca que un juez, pero
 gratuita, reproducible, y **nunca inventa un aprobado**.
@@ -154,11 +160,23 @@ AGENT_API_KEY=      # el bearer que envía la plataforma. VACÍO = rechaza todo,
                     # en todos los entornos. No hay excepción por entorno.
 LLM_PROVIDER=anthropic          # o openai_compatible
 LLM_MODEL=claude-sonnet-5
-RETRIEVAL_MODE=hybrid           # context | structured | dense | hybrid
+RETRIEVAL_MODE=context          # context | structured | dense | hybrid
 ```
 
 `RETRIEVAL_MODE` es el interruptor de la escalera: un solo pipeline con cuatro modos,
-no cuatro sistemas. Es lo que hace que la comparación medida sea asequible.
+no cuatro sistemas. Es lo que hace que la comparación medida sea asequible — y el
+default es `context` porque **ganó esa comparación** ([DEC-014](docs/DECISIONS.md#dec-014--el-modo-de-producción-es-context-porque-eso-dice-la-medición)):
+
+| Modo | Sin falsedades | Cobertura | p50 | Tokens |
+|---|---:|---:|---:|---:|
+| **`context`** | 42/42 | **0.76** | **2.8 s** | **9,406** |
+| `structured` | 42/42 | 0.54 | 4.1 s | 54,223 |
+| `dense` | 42/42 | 0.68 | 4.0 s | 54,576 |
+| `hybrid` | 42/42 | 0.71 | 3.9 s | 62,086 |
+
+Con 135 chunks el perfil entero cabe en un prompt, así que la recuperación no está
+resolviendo un problema real *todavía*. Deja de ser cierto en cuanto el corpus crezca,
+y volver es una variable.
 
 ---
 
