@@ -121,7 +121,7 @@ devbox shell
 cp .env.example .env        # y llenar AGENT_API_KEY y LLM_API_KEY
 uv sync
 
-devbox run check            # ruff + mypy strict + pytest (117 pruebas)
+devbox run check            # ruff + mypy strict + pytest (131 pruebas)
 devbox run dev              # uvicorn en :8000
 ```
 

@@ -10,3 +10,4 @@ __pycache__/
 .devbox/
 node_modules/
 /reports/
+.fastembed_cache/

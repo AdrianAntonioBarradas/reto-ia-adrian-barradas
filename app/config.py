@@ -13,7 +13,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RetrievalMode = Literal["context", "structured", "dense", "hybrid"]
@@ -24,9 +24,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     environment: Literal["development", "production"] = "production"
-
-    # --- Data ---------------------------------------------------------------
-    database_url: str = "postgresql://cvagent:cvagent@localhost:5433/cvagent"
 
     # --- Public API ---------------------------------------------------------
     # The bearer token the Reto IA platform sends. Empty => every request is
@@ -58,6 +55,9 @@ class Settings(BaseSettings):
     # thresholds were calibrated on Spanish text in prior work.
     embeddings_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     embeddings_dim: int = 384
+    # Inside the app directory so the model is baked into the built image at
+    # build time rather than downloaded on the first request.
+    embeddings_cache_dir: str = ".fastembed_cache"
 
     # --- Retrieval ----------------------------------------------------------
     # The ladder switch: one pipeline, four modes, one evaluation set.
@@ -68,14 +68,6 @@ class Settings(BaseSettings):
     # --- Ceilings -----------------------------------------------------------
     max_tool_iterations: int = Field(default=6, ge=1, le=12)
     rate_limit_per_minute: int = Field(default=30, ge=1)
-
-    @field_validator("database_url")
-    @classmethod
-    def _use_asyncpg_driver(cls, value: str) -> str:
-        """Hosting platforms hand out ``postgresql://``; SQLAlchemy async needs the driver."""
-        if value.startswith("postgresql://"):
-            return value.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return value
 
     @property
     def is_production(self) -> bool:

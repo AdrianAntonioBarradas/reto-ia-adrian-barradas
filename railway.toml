@@ -3,12 +3,14 @@
 # There is no RAILWAY_CONFIG_FILE environment variable.
 [build]
 builder = "NIXPACKS"
+# Bake the ~220 MB ONNX embedding model into the image. Without this the first
+# request after a cold start pays for the download, and a network failure surfaces
+# as a timeout for a real user instead of as a failed build.
+buildCommand = "uv sync --frozen && uv run python -m scripts.warm_model"
 
 [deploy]
-# Fail-closed: if the migration fails the new version is never promoted.
-preDeployCommand = ["uv run alembic upgrade head"]
 startCommand = "uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

@@ -9,8 +9,9 @@ Chosen over a hosted embeddings API for three reasons worth defending:
    thresholds were previously calibrated against Spanish-language content, so the
    threshold work carries over instead of starting from a guess.
 
-The cost is a ~220 MB model that must be present in the image. It is downloaded at
-build time (see the Railway build step), never on the first request.
+The cost is a ~220 MB model that must be present in the image. `scripts/warm_model.py`
+downloads it into ``EMBEDDINGS_CACHE_DIR`` during the build, so a cold container never
+pays for it and the first request is not the one that discovers the network is down.
 """
 
 from __future__ import annotations
@@ -21,13 +22,19 @@ from app.config import Settings, get_settings
 
 
 class LocalOnnxEmbedder:
-    def __init__(self, model_name: str, *, expected_dim: int | None = None) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        *,
+        expected_dim: int | None = None,
+        cache_dir: str | None = None,
+    ) -> None:
         # Imported lazily: fastembed pulls in onnxruntime, and modules that only
         # need the type should not pay that import cost.
         from fastembed import TextEmbedding
 
         self._model_name = model_name
-        self._model = TextEmbedding(model_name)
+        self._model = TextEmbedding(model_name, cache_dir=cache_dir)
         self._dimension = self._resolve_dimension(model_name)
         if expected_dim is not None and expected_dim != self._dimension:
             raise ValueError(
@@ -72,5 +79,9 @@ def build_embedder(settings: Settings | None = None) -> LocalOnnxEmbedder:
     global _embedder
     if _embedder is None:
         cfg = settings or get_settings()
-        _embedder = LocalOnnxEmbedder(cfg.embeddings_model, expected_dim=cfg.embeddings_dim)
+        _embedder = LocalOnnxEmbedder(
+            cfg.embeddings_model,
+            expected_dim=cfg.embeddings_dim,
+            cache_dir=cfg.embeddings_cache_dir,
+        )
     return _embedder
