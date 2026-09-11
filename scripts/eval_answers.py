@@ -19,9 +19,9 @@ is denying: ``"tiene experiencia con kubernetes"``.
 
 Read the coverage column as a floor, not a score.
 
-    uv run python -m scripts.eval_answers            # all cases
-    uv run python -m scripts.eval_answers --category proficiency-honesty
-    uv run python -m scripts.eval_answers --risk high --write
+    uv run python -m scripts.eval_answers                  # configured mode
+    uv run python -m scripts.eval_answers --mode context   # one rung
+    uv run python -m scripts.eval_answers --ladder --write # all four rungs, compared
 """
 
 from __future__ import annotations
@@ -37,16 +37,22 @@ from pathlib import Path
 from typing import Any
 
 from app.agent.loop import CVAgent
-from app.config import get_settings
+from app.config import RetrievalMode, get_settings
 from app.knowledge.corpus import get_corpus
 from app.llm.factory import build_llm_adapter
 from app.openresponses.schemas import Turn
-from app.retrieval.engine import get_engine
+from app.retrieval.engine import RetrievalEngine
 from app.retrieval.lexical import normalize
 
 ROOT = Path(__file__).resolve().parents[1]
 CASES_PATH = ROOT / "evals" / "cases.jsonl"
 REPORT_PATH = ROOT / "docs" / "EVALUATION-ANSWERS.md"
+LADDER_PATH = ROOT / "docs" / "EVALUATION-LADDER.md"
+
+# The experiment ladder. Each rung answers a question the one below it leaves open,
+# and the point of running all four is that "retrieval helps" is a claim, not a
+# given: on a corpus this small the whole profile fits in a prompt.
+LADDER: tuple[RetrievalMode, ...] = ("context", "structured", "dense", "hybrid")
 
 # Phrases that count as a refusal or an explicit absence of information.
 ABSTENTION_MARKERS = (
@@ -263,38 +269,143 @@ def render(scores: list[AnswerScore], model: str, mode: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-async def main_async(args: argparse.Namespace) -> None:
-    cases = load_cases(args.category, args.risk)
+def build_agent(mode: RetrievalMode) -> CVAgent:
     settings = get_settings()
-    agent = CVAgent(
+    corpus = get_corpus()
+    embedder = None
+    if mode in {"dense", "hybrid"}:
+        from app.embeddings.local_onnx import build_embedder
+
+        embedder = build_embedder(settings)
+    engine = RetrievalEngine(
+        corpus,
+        embedder,
+        mode=mode,
+        top_k=settings.retrieval_top_k,
+        candidates=settings.retrieval_candidates,
+    )
+    return CVAgent(
         build_llm_adapter(settings),
-        get_corpus(),
-        get_engine(settings),
+        corpus,
+        engine,
         max_tool_iterations=settings.max_tool_iterations,
     )
 
-    print(f"{len(cases)} cases · model={settings.llm_model} · mode={settings.retrieval_mode}\n")
+
+async def run_mode(
+    mode: RetrievalMode, cases: list[dict[str, Any]], delay: float, quiet: bool = False
+) -> list[AnswerScore]:
+    agent = build_agent(mode)
     scores: list[AnswerScore] = []
     for index, case in enumerate(cases, start=1):
         score = await run_case(agent, case)
         scores.append(score)
-        mark = "ok  " if score.passed else "FAIL"
-        note = score.error or (f"forbidden={list(score.violations)}" if score.violations else "")
-        if score.must_abstain and not score.abstained and not note:
-            note = "did not abstain"
-        print(
-            f"[{index:2d}/{len(cases)}] {mark} {score.case_id:9s} {score.category:20s} "
-            f"cov={score.coverage:.2f} {score.latency_s:4.1f}s {note}"
-        )
+        if not quiet:
+            mark = "ok  " if score.passed else "FAIL"
+            note = score.error or (
+                f"forbidden={list(score.violations)}" if score.violations else ""
+            )
+            if score.must_abstain and not score.abstained and not note:
+                note = "did not abstain"
+            print(
+                f"[{index:2d}/{len(cases)}] {mark} {score.case_id:9s} {score.category:20s} "
+                f"cov={score.coverage:.2f} {score.latency_s:4.1f}s {note}"
+            )
         # Space the calls out: provider rate limits are per-minute.
         if index < len(cases):
-            await asyncio.sleep(args.delay)
+            await asyncio.sleep(delay)
+    return scores
 
+
+def render_ladder(results: dict[str, list[AnswerScore]], model: str) -> str:
+    lines = [
+        "# La escalera de recuperación, medida de extremo a extremo",
+        "",
+        f"Generado por `uv run python -m scripts.eval_answers --ladder`. Modelo `{model}`.",
+        "",
+        "Cuatro modos, un solo pipeline, el mismo conjunto de 42 casos. La única variable",
+        "es el paso de recuperación. Esto responde la pregunta que la evaluación de",
+        "recuperación no puede: **¿la recuperación resuelve un problema real, o el perfil",
+        "completo en el prompt bastaba?** Con 135 chunks no es una pregunta retórica.",
+        "",
+        "| Modo | Qué hace | Sin falsedades | Cobertura | p50 | Tokens |",
+        "|---|---|---:|---:|---:|---:|",
+    ]
+    describe = {
+        "context": "perfil completo en el prompt, sin herramientas",
+        "structured": "sólo herramientas deterministas",
+        "dense": "coseno sobre embeddings",
+        "hybrid": "denso + BM25 fusionados con RRF",
+    }
+    for mode, scores in results.items():
+        ok = sum(1 for s in scores if s.passed)
+        cov = statistics.mean(s.coverage for s in scores)
+        lat = [s.latency_s for s in scores if not s.error]
+        tok = sum(s.tokens for s in scores)
+        p50 = statistics.median(lat) if lat else 0.0
+        lines.append(
+            f"| `{mode}` | {describe.get(mode, '')} | {ok}/{len(scores)} | "
+            f"{cov:.2f} | {p50:.1f} s | {tok:,} |"
+        )
+
+    lines += [
+        "",
+        "## Sin falsedades, por categoría",
+        "",
+        "| Categoría | " + " | ".join(f"`{m}`" for m in results) + " |",
+        "|---" * (len(results) + 1) + "|",
+    ]
+    cats = sorted({s.category for scores in results.values() for s in scores})
+    for cat in cats:
+        row = []
+        for scores in results.values():
+            group = [s for s in scores if s.category == cat]
+            row.append(f"{sum(1 for s in group if s.passed)}/{len(group)}")
+        lines.append(f"| {cat} | " + " | ".join(row) + " |")
+
+    lines += ["", "## Fallos por modo", ""]
+    for mode, scores in results.items():
+        bad = [s for s in scores if not s.passed]
+        lines.append(f"**`{mode}`** — {len(bad)} fallo(s)")
+        lines.append("")
+        for s in bad:
+            reason = s.error or (
+                f"afirmación prohibida {list(s.violations)}" if s.violations else "no se abstuvo"
+            )
+            lines.append(f"- `{s.case_id}` ({s.category}): {reason}")
+        lines.append("")
+    return "\n".join(lines) + "\n"
+
+
+async def main_async(args: argparse.Namespace) -> None:
+    cases = load_cases(args.category, args.risk)
+    settings = get_settings()
+
+    if args.ladder:
+        print(
+            f"ladder: {len(LADDER)} modes x {len(cases)} cases = "
+            f"{len(LADDER) * len(cases)} runs · model={settings.llm_model}\n"
+        )
+        results: dict[str, list[AnswerScore]] = {}
+        for rung in LADDER:
+            print(f"--- {rung} ---")
+            scores = await run_mode(rung, cases, args.delay, quiet=True)
+            results[rung] = scores
+            ok = sum(1 for s in scores if s.passed)
+            cov = statistics.mean(s.coverage for s in scores)
+            print(f"    {ok}/{len(scores)} without a false assertion · coverage {cov:.2f}\n")
+        if args.write:
+            LADDER_PATH.write_text(render_ladder(results, settings.llm_model), encoding="utf-8")
+            print(f"wrote {LADDER_PATH.relative_to(ROOT)}")
+        return
+
+    mode: RetrievalMode = args.mode or settings.retrieval_mode
+    print(f"{len(cases)} cases · model={settings.llm_model} · mode={mode}\n")
+    scores = await run_mode(mode, cases, args.delay)
     passed = sum(1 for s in scores if s.passed)
     print(f"\n{passed}/{len(scores)} with no false assertion")
-    report = render(scores, settings.llm_model, settings.retrieval_mode)
     if args.write:
-        REPORT_PATH.write_text(report, encoding="utf-8")
+        REPORT_PATH.write_text(render(scores, settings.llm_model, mode), encoding="utf-8")
         print(f"wrote {REPORT_PATH.relative_to(ROOT)}")
 
 
@@ -302,6 +413,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--category")
     parser.add_argument("--risk", choices=["low", "medium", "high"])
+    parser.add_argument("--mode", choices=list(LADDER), help="run one rung")
+    parser.add_argument("--ladder", action="store_true", help="run all four rungs")
     parser.add_argument("--delay", type=float, default=1.0)
     parser.add_argument("--write", action="store_true")
     asyncio.run(main_async(parser.parse_args()))
