@@ -147,6 +147,41 @@ uv run python -m scripts.eval_retrieval --write
 
 ---
 
+## Probar el agente desplegado
+
+Cuatro capas, de la más barata a la más cara. La última es la que de verdad importa.
+
+```bash
+# 1. Compuerta de release: salud, descubrimiento, auth en ambos sentidos y una
+#    respuesta real verificada por honestidad. Sale con código != 0 al primer fallo.
+BASE_URL=https://<host> AGENT_API_KEY=<clave> ./scripts/smoke_test.sh
+
+# 2. Conformidad con el protocolo, con el tester oficial (ver docs/COMPLIANCE.md)
+npx tsx bin/compliance-test.ts --base-url https://<host>/v1 --api-key <clave> \
+  --model cv-agent --json
+
+# 3. Regresión de comportamiento: 42 casos contra el agente real
+uv run python -m scripts.eval_answers --write
+uv run python -m scripts.eval_answers --category proficiency-honesty   # sólo una categoría
+```
+
+**4. La prueba de mayor fidelidad es la interfaz de chat de la propia plataforma.**
+Es la superficie donde se va a evaluar, ejercita la ruta de integración real, y funciona
+en el navegador de un teléfono. No hay un front end propio en este repositorio a
+propósito: sería una segunda superficie que nadie va a usar, con la clave de API
+expuesta en el navegador o un proxy extra que mantener, y el reto advierte
+explícitamente contra añadir piezas que no responden a una necesidad real.
+
+### Operación
+
+```bash
+railway up                      # desplegar (el build baja el modelo, ~3 min)
+railway down --yes              # detener: quita el despliegue, conserva servicio y variables
+railway logs                    # logs de ejecución
+```
+
+---
+
 ## Configuración
 
 Todo en [`.env.example`](.env.example), que es el contrato: cada variable documenta de
