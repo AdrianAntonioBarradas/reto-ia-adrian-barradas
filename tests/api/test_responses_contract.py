@@ -153,17 +153,44 @@ async def test_health_reports_degraded_when_a_key_is_missing(
 
 
 async def test_agent_card_is_servable_and_points_at_the_v1_base(client: AsyncClient) -> None:
+    """The card must match A2A v1.0, not the older single-`url` shape.
+
+    The registration form rejected the first version outright — "falta name o
+    supportedInterfaces" — because v1.0 replaced the top-level url/preferredTransport
+    pair with a list of interfaces, each carrying its own binding and version.
+    """
     response = await client.get("/.well-known/agent-card.json")
     assert response.status_code == 200
     card = response.json()
-    assert card["url"].endswith("/v1")
-    assert card["security"] == [{"bearer": []}]
+
+    assert card["name"]
+    interfaces = card["supportedInterfaces"]
+    assert len(interfaces) == 1
+    assert interfaces[0]["url"].endswith("/v1")
+    # HTTP+JSON, not JSONRPC: the card should describe what the endpoint actually is.
+    assert interfaces[0]["protocolBinding"] == "HTTP+JSON"
+    assert interfaces[0]["protocolVersion"]
+
+    assert card["capabilities"]["streaming"] is True
+    assert "bearer" in card["securitySchemes"]
+    assert card["securitySchemes"]["bearer"]["httpAuthSecurityScheme"]["scheme"] == "bearer"
+    assert card["securityRequirements"]
+
     assert {s["id"] for s in card["skills"]} == {
         "perfil",
         "experiencia",
         "habilidades",
         "proyectos",
     }
+
+
+async def test_agent_card_uses_camel_case_not_the_protobuf_names(
+    client: AsyncClient,
+) -> None:
+    """The normative spec is protobuf (snake_case); the JSON binding is camelCase."""
+    card = (await client.get("/.well-known/agent-card.json")).json()
+    for wrong in ("supported_interfaces", "security_requirements", "security_schemes"):
+        assert wrong not in card, f"card uses the protobuf name {wrong!r}"
 
 
 # --- streaming ---------------------------------------------------------------

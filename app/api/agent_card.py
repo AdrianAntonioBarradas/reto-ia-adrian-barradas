@@ -1,8 +1,21 @@
 """A2A agent card at ``/.well-known/agent-card.json``.
 
-The Reto IA registration form accepts a card URL and auto-fills the whole form
-from it. Serving one turns registration into a single paste, and it makes the
-agent *discoverable* rather than merely callable.
+The Reto IA registration form accepts a card URL and auto-fills the whole form from
+it, so serving one turns registration into a single paste and makes the agent
+*discoverable* rather than merely callable.
+
+**This agent is not an A2A agent.** It speaks Open Responses over HTTP, and the card
+is used purely for discovery. That is why ``protocolBinding`` is ``HTTP+JSON`` rather
+than ``JSONRPC``: the card should describe what is actually there.
+
+Shape matters here, and the first version of this file got it wrong. A2A v1.0 replaced
+the single top-level ``url``/``preferredTransport`` pair with **``supportedInterfaces``**
+— a list of ``AgentInterface`` entries, each with its own url, binding and protocol
+version, so one agent can expose the same capability over several bindings. The
+platform rejected the old shape outright with "falta name o supportedInterfaces".
+
+JSON is camelCase (``supportedInterfaces``, ``securityRequirements``) even though the
+normative protobuf is snake_case.
 """
 
 from __future__ import annotations
@@ -61,23 +74,35 @@ async def agent_card() -> dict[str, Any]:
     settings = get_settings()
     base = settings.public_base_url.rstrip("/")
     return {
-        "protocolVersion": "0.3.0",
         "name": settings.agent_name,
         "description": _DESCRIPTION,
-        "url": f"{base}/v1",
-        "preferredTransport": "JSONRPC",
-        "version": "0.1.0",
+        "version": "1.0.0",
+        "documentationUrl": "https://github.com/AdrianAntonioBarradas/reto-ia-adrian-barradas",
         "provider": {"organization": "Adrián Barradas", "url": base},
-        "capabilities": {"streaming": False, "pushNotifications": False},
+        # One entry: this agent exposes Open Responses over plain HTTP. Listing it as
+        # JSONRPC would be a claim the endpoint does not honour.
+        "supportedInterfaces": [
+            {
+                "url": f"{base}/v1",
+                "protocolBinding": "HTTP+JSON",
+                "protocolVersion": "1.0",
+            }
+        ],
+        "capabilities": {
+            "streaming": True,
+            "pushNotifications": False,
+            "extendedAgentCard": False,
+        },
         "defaultInputModes": ["text/plain"],
         "defaultOutputModes": ["text/plain"],
         "securitySchemes": {
             "bearer": {
-                "type": "http",
-                "scheme": "bearer",
-                "description": "Clave de API del agente.",
+                "httpAuthSecurityScheme": {
+                    "scheme": "bearer",
+                    "description": "Clave de API del agente.",
+                }
             }
         },
-        "security": [{"bearer": []}],
+        "securityRequirements": [{"schemes": {"bearer": {"list": []}}}],
         "skills": _SKILLS,
     }
