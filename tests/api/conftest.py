@@ -33,7 +33,9 @@ def _stub_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.agent import loop
     from app.agent.types import AgentAnswer
 
-    async def fake_answer(turns: object, instructions: object = None) -> AgentAnswer:
+    async def fake_answer(
+        turns: object, instructions: object = None, client_tools: object = None
+    ) -> AgentAnswer:
         return AgentAnswer(text="respuesta de prueba", usage={"total_tokens": 7})
 
     monkeypatch.setattr(loop, "answer", fake_answer)

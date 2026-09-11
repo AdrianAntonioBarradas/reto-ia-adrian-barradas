@@ -67,7 +67,15 @@ class Settings(BaseSettings):
 
     # --- Retrieval ----------------------------------------------------------
     # The ladder switch: one pipeline, four modes, one evaluation set.
-    retrieval_mode: RetrievalMode = "hybrid"
+    #
+    # Default is "context" because that is what the measurement says. On 135 chunks
+    # the full profile in the prompt beat hybrid retrieval on every axis measured:
+    # coverage 0.76 vs 0.71, p50 2.8 s vs 3.9 s, and 9.4k tokens vs 62k. All four
+    # rungs were equally honest (42/42). See docs/EVALUATION-LADDER.md.
+    #
+    # Retrieval is not dead code: it is the path for when the corpus outgrows a
+    # prompt, and switching back is this one variable.
+    retrieval_mode: RetrievalMode = "context"
     retrieval_top_k: int = Field(default=6, ge=1, le=20)
     retrieval_candidates: int = Field(default=20, ge=1, le=100)
 

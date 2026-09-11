@@ -164,3 +164,127 @@ async def test_agent_card_is_servable_and_points_at_the_v1_base(client: AsyncCli
         "habilidades",
         "proyectos",
     }
+
+
+# --- streaming ---------------------------------------------------------------
+
+
+def _parse_sse(body: str) -> list[dict[str, Any]]:
+    """Parse an SSE body into event payloads, ignoring the [DONE] sentinel."""
+    import json
+
+    events: list[dict[str, Any]] = []
+    for block in body.split("\n\n"):
+        for line in block.splitlines():
+            if line.startswith("data:"):
+                data = line[5:].strip()
+                if data and data != "[DONE]":
+                    events.append(json.loads(data))
+    return events
+
+
+async def test_streaming_sets_the_event_stream_content_type(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    response = await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+
+
+async def test_streaming_emits_the_documented_event_sequence(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    body = (await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)).text
+    types = [e["type"] for e in _parse_sse(body)]
+    assert types[0] == "response.created"
+    assert types[1] == "response.in_progress"
+    assert types[-1] == "response.completed"
+    for expected in (
+        "response.output_item.added",
+        "response.content_part.added",
+        "response.output_text.delta",
+        "response.output_text.done",
+        "response.content_part.done",
+        "response.output_item.done",
+    ):
+        assert expected in types, f"missing {expected}"
+
+
+async def test_streaming_terminates_with_the_done_sentinel(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    body = (await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)).text
+    assert body.rstrip().endswith("data: [DONE]")
+
+
+async def test_every_streaming_event_carries_a_monotonic_sequence_number(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    """sequence_number is required on every event schema, and ordering is the point."""
+    body = (await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)).text
+    numbers = [e["sequence_number"] for e in _parse_sse(body)]
+    assert numbers == sorted(numbers)
+    assert numbers == list(range(1, len(numbers) + 1))
+
+
+async def test_deltas_reassemble_into_the_final_text(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    """A client that concatenates deltas must end up with exactly the answer."""
+    body = (await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)).text
+    events = _parse_sse(body)
+    deltas = "".join(e["delta"] for e in events if e["type"] == "response.output_text.delta")
+    done = next(e["text"] for e in events if e["type"] == "response.output_text.done")
+    assert deltas == done
+    final = next(e for e in events if e["type"] == "response.completed")
+    assert final["response"]["output"][0]["content"][0]["text"] == deltas
+
+
+async def test_terminal_event_carries_the_full_response_object(
+    client: AsyncClient, auth: dict[str, str]
+) -> None:
+    body = (await client.post(ENDPOINT, json={"input": "hola", "stream": True}, headers=auth)).text
+    final = next(e for e in _parse_sse(body) if e["type"] == "response.completed")
+    response = final["response"]
+    assert response["status"] == "completed"
+    # The schema has no optional properties; spot-check ones easily forgotten.
+    for field in ("service_tier", "truncation", "parallel_tool_calls", "top_logprobs"):
+        assert field in response, f"terminal response is missing {field}"
+
+
+async def test_client_declared_tools_come_back_as_function_call_items(
+    client: AsyncClient, auth: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Caller-supplied tools are the caller's to execute, not ours."""
+    from app.agent import loop
+    from app.agent.types import AgentAnswer, PendingToolCall
+
+    async def fake_answer(
+        turns: object, instructions: object = None, client_tools: object = None
+    ) -> AgentAnswer:
+        return AgentAnswer(
+            text="",
+            pending_tool_calls=(
+                PendingToolCall(id="call_1", name="get_weather", arguments='{"location":"SF"}'),
+            ),
+        )
+
+    monkeypatch.setattr(loop, "answer", fake_answer)
+    payload = {
+        "input": "What's the weather in San Francisco?",
+        "tools": [
+            {
+                "type": "function",
+                "name": "get_weather",
+                "description": "Get the current weather",
+                "parameters": {"type": "object", "properties": {}},
+            }
+        ],
+    }
+    body = (await client.post(ENDPOINT, json=payload, headers=auth)).json()
+    calls = [item for item in body["output"] if item["type"] == "function_call"]
+    assert len(calls) == 1
+    assert calls[0]["name"] == "get_weather"
+    assert calls[0]["call_id"] == "call_1"
+    # The response must also echo the tools the caller declared.
+    assert body["tools"][0]["name"] == "get_weather"

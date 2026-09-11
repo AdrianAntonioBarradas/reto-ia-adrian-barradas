@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import Sequence
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -131,7 +132,23 @@ class OutputMessage(BaseModel):
     content: list[OutputTextContent]
 
 
-OutputItem = Annotated[OutputMessage, Field(discriminator="type")]
+class FunctionCallItem(BaseModel):
+    """A call to a tool the *caller* declared.
+
+    The caller executes it and returns a ``function_call_output`` on the next turn.
+    The agent's own tools never appear here — those run server-side inside the loop
+    and only their effect on the answer is visible.
+    """
+
+    type: Literal["function_call"] = "function_call"
+    id: str = Field(default_factory=lambda: _new_id("fc"))
+    call_id: str
+    name: str
+    arguments: str
+    status: Literal["completed", "in_progress", "incomplete"] = "completed"
+
+
+OutputItem = Annotated[OutputMessage | FunctionCallItem, Field(discriminator="type")]
 
 
 class InputTokensDetails(BaseModel):
@@ -221,7 +238,13 @@ class ResponseObject(BaseModel):
 
     @property
     def output_text(self) -> str:
-        return "\n".join(part.text for item in self.output for part in item.content if part.text)
+        return "\n".join(
+            part.text
+            for item in self.output
+            if isinstance(item, OutputMessage)
+            for part in item.content
+            if part.text
+        )
 
 
 def _echo_request(response: ResponseObject, request: ResponsesRequest | None) -> ResponseObject:
@@ -247,14 +270,27 @@ def text_response(
     usage: Usage | None = None,
     metadata: dict[str, Any] | None = None,
     request: ResponsesRequest | None = None,
+    function_calls: Sequence[tuple[str, str, str]] = (),
 ) -> ResponseObject:
+    """Build a completed response.
+
+    ``function_calls`` is a sequence of ``(call_id, name, arguments)`` for tools the
+    caller declared and must execute itself.
+    """
     now = int(time.time())
+    output: list[OutputItem] = []
+    if text.strip():
+        output.append(OutputMessage(content=[OutputTextContent(text=text)]))
+    output.extend(
+        FunctionCallItem(call_id=call_id, name=name, arguments=arguments)
+        for call_id, name, arguments in function_calls
+    )
     response = ResponseObject(
         status="completed",
         created_at=now,
         completed_at=now,
         model=model,
-        output=[OutputMessage(content=[OutputTextContent(text=text)])],
+        output=output,
         usage=usage or Usage(),
         metadata=metadata or {},
     )

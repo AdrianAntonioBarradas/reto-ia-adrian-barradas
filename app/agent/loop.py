@@ -15,10 +15,10 @@ from typing import Any
 
 from app.agent import policy
 from app.agent.prompts import compose_system_prompt, with_operator_instructions
-from app.agent.types import AgentAnswer, EvidenceRef
+from app.agent.types import AgentAnswer, EvidenceRef, PendingToolCall
 from app.config import Settings, get_settings
 from app.knowledge.corpus import Corpus, get_corpus
-from app.llm.base import ChatMessage, LLMAdapter, ToolCall
+from app.llm.base import ChatMessage, LLMAdapter, ToolCall, ToolSpec
 from app.openresponses.schemas import Turn
 from app.retrieval.engine import RetrievalEngine, get_engine
 from app.tools import Tool, build_tools
@@ -146,7 +146,39 @@ class CVAgent:
 
     # ------------------------------------------------------------------ #
 
-    async def answer(self, turns: list[Turn], instructions: str | None = None) -> AgentAnswer:
+    @staticmethod
+    def _client_tool_specs(declared: list[dict[str, Any]] | None) -> list[ToolSpec]:
+        """Normalise caller-declared tools.
+
+        Open Responses puts a function tool's fields at the top level
+        (``{"type":"function","name":...}``); the chat-completions shape nests them
+        under ``function``. Accept both — rejecting a valid encoding here would fail
+        an integration for no reason.
+        """
+        specs: list[ToolSpec] = []
+        for tool in declared or []:
+            if not isinstance(tool, dict) or tool.get("type") not in {"function", None}:
+                continue
+            nested = tool.get("function")
+            body: dict[str, Any] = nested if isinstance(nested, dict) else tool
+            name = body.get("name")
+            if not name:
+                continue
+            specs.append(
+                ToolSpec(
+                    name=str(name),
+                    description=str(body.get("description") or ""),
+                    parameters=body.get("parameters") or {"type": "object", "properties": {}},
+                )
+            )
+        return specs
+
+    async def answer(
+        self,
+        turns: list[Turn],
+        instructions: str | None = None,
+        client_tools: list[dict[str, Any]] | None = None,
+    ) -> AgentAnswer:
         question = next((t.text for t in reversed(turns) if t.role == "user"), "")
         if not question.strip():
             return AgentAnswer(
@@ -178,7 +210,27 @@ class CVAgent:
                 )
             )
 
-        tools = [t.spec for t in self._tools.values()] if self._engine.mode != "context" else None
+        own_tools = [t.spec for t in self._tools.values()] if self._engine.mode != "context" else []
+        caller_tools = self._client_tool_specs(client_tools)
+        caller_names = {t.name for t in caller_tools}
+        if caller_tools:
+            # The default prompt keeps the agent tightly on the subject of the CV,
+            # which would otherwise make it decline a perfectly legitimate tool the
+            # operator attached. Say explicitly that these are sanctioned.
+            messages.append(
+                ChatMessage(
+                    role="system",
+                    content=(
+                        "Quien integra este agente adjuntó herramientas adicionales: "
+                        + ", ".join(sorted(caller_names))
+                        + ". Son legítimas y puedes invocarlas cuando la petición lo "
+                        "amerite, aunque el tema no sea el perfil de Adrián. No las "
+                        "ejecutas tú: al invocarlas, la llamada se devuelve a quien "
+                        "integra para que la resuelva."
+                    ),
+                )
+            )
+        tools = (own_tools + caller_tools) or None
         evidence: list[EvidenceRef] = []
         called: list[str] = []
         usage: dict[str, int] = {}
@@ -196,6 +248,22 @@ class CVAgent:
                     tool_calls_made=tuple(called),
                     usage=usage,
                     model=response.model,
+                )
+
+            # A call to a caller-declared tool is not ours to run. Surface it and
+            # stop: the caller executes it and sends the result on the next turn.
+            pending = [c for c in response.tool_calls if c.name in caller_names]
+            if pending:
+                return AgentAnswer(
+                    text=(response.content or "").strip(),
+                    evidence=tuple(evidence),
+                    tool_calls_made=tuple(called),
+                    usage=usage,
+                    model=response.model,
+                    pending_tool_calls=tuple(
+                        PendingToolCall(id=c.id, name=c.name, arguments=c.arguments)
+                        for c in pending
+                    ),
                 )
 
             messages.append(
@@ -246,6 +314,10 @@ def get_agent(settings: Settings | None = None) -> CVAgent:
     return _agent
 
 
-async def answer(turns: list[Turn], instructions: str | None = None) -> AgentAnswer:
+async def answer(
+    turns: list[Turn],
+    instructions: str | None = None,
+    client_tools: list[dict[str, Any]] | None = None,
+) -> AgentAnswer:
     """Module-level entry point, kept so the API layer has one stable import."""
-    return await get_agent().answer(turns, instructions)
+    return await get_agent().answer(turns, instructions, client_tools)
