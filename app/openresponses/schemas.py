@@ -247,6 +247,26 @@ class ResponseObject(BaseModel):
         )
 
 
+def _normalize_tool(tool: dict[str, Any]) -> dict[str, Any]:
+    """Bring a caller's tool declaration up to the *response* schema.
+
+    A request may omit fields the response requires. ``strict`` is the one that bit:
+    the compliance suite declares a tool without it, and echoing the declaration back
+    verbatim failed validation with `tools.0.strict: Invalid input`. The request and
+    response schemas for a tool are not the same shape, and assuming they were is an
+    easy mistake to make when the field names line up.
+    """
+    nested = tool.get("function")
+    body: dict[str, Any] = nested if isinstance(nested, dict) else tool
+    return {
+        "type": "function",
+        "name": body.get("name", ""),
+        "description": body.get("description"),
+        "parameters": body.get("parameters") or {"type": "object", "properties": {}},
+        "strict": body.get("strict", False),
+    }
+
+
 def _echo_request(response: ResponseObject, request: ResponsesRequest | None) -> ResponseObject:
     """Reflect the caller's own settings back, as the schema expects."""
     if request is None:
@@ -255,7 +275,7 @@ def _echo_request(response: ResponseObject, request: ResponsesRequest | None) ->
     response.previous_response_id = request.previous_response_id
     response.max_output_tokens = request.max_output_tokens
     response.store = bool(request.store)
-    response.tools = request.tools or []
+    response.tools = [_normalize_tool(t) for t in (request.tools or []) if isinstance(t, dict)]
     if isinstance(request.tool_choice, str):
         response.tool_choice = request.tool_choice
     if request.temperature is not None:

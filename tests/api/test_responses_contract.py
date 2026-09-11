@@ -286,5 +286,10 @@ async def test_client_declared_tools_come_back_as_function_call_items(
     assert len(calls) == 1
     assert calls[0]["name"] == "get_weather"
     assert calls[0]["call_id"] == "call_1"
-    # The response must also echo the tools the caller declared.
-    assert body["tools"][0]["name"] == "get_weather"
+    # The response must echo the caller's tools, brought up to the response schema:
+    # `strict` is required there even when the request omitted it.
+    echoed = body["tools"][0]
+    assert echoed["name"] == "get_weather"
+    assert echoed["type"] == "function"
+    assert "strict" in echoed
+    assert "parameters" in echoed
