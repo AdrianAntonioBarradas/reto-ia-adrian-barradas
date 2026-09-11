@@ -9,19 +9,19 @@ from __future__ import annotations
 
 import pytest
 
-from app.knowledge.chunker import build_chunks
+from app.knowledge.chunker import Chunk, build_chunks
 from app.knowledge.corpus import load_corpus
 from app.retrieval.fusion import reciprocal_rank_fusion
 from app.retrieval.lexical import BM25Index, fold_plural, tokenize
 
 
 @pytest.fixture(scope="module")
-def chunks() -> list:
+def chunks() -> list[Chunk]:
     return build_chunks(load_corpus())
 
 
 @pytest.fixture(scope="module")
-def bm25(chunks: list) -> BM25Index:
+def bm25(chunks: list[Chunk]) -> BM25Index:
     return BM25Index({c.id: c.embedding_text for c in chunks})
 
 
@@ -110,7 +110,7 @@ def test_rrf_is_deterministic_under_ties() -> None:
 # --- chunking ---------------------------------------------------------------
 
 
-def test_every_chunk_is_self_contained(chunks: list) -> None:
+def test_every_chunk_is_self_contained(chunks: list[Chunk]) -> None:
     """A chunk that starts with a bare pronoun is useless once retrieved alone."""
     for chunk in chunks:
         first_word = chunk.text.split()[0].lower().strip(".,:")
@@ -119,7 +119,7 @@ def test_every_chunk_is_self_contained(chunks: list) -> None:
         )
 
 
-def test_learning_skills_state_the_absence_of_experience(chunks: list) -> None:
+def test_learning_skills_state_the_absence_of_experience(chunks: list[Chunk]) -> None:
     """The honest phrasing must be in the retrieved text, not inferred from a tag."""
     learning = [c for c in chunks if c.metadata.get("proficiency") == "LEARNING"]
     assert learning, "no LEARNING skill chunks were produced"
@@ -129,7 +129,7 @@ def test_learning_skills_state_the_absence_of_experience(chunks: list) -> None:
         )
 
 
-def test_projects_carry_attribution_in_their_text(chunks: list) -> None:
+def test_projects_carry_attribution_in_their_text(chunks: list[Chunk]) -> None:
     """Metadata alone is not enough: the model may only ever see the body."""
     for chunk in chunks:
         if chunk.entity_type != "project":
@@ -141,7 +141,7 @@ def test_projects_carry_attribution_in_their_text(chunks: list) -> None:
             assert "no es suyo" in chunk.text, f"{chunk.id} omits its disclaimer"
 
 
-def test_caveats_travel_with_their_claim(chunks: list) -> None:
+def test_caveats_travel_with_their_claim(chunks: list[Chunk]) -> None:
     """Retrieving an achievement without its qualifier is how FAMILIAR becomes expertise."""
     with_caveat = [c for c in chunks if c.metadata.get("has_caveat")]
     assert with_caveat, "no caveated highlights were produced"
