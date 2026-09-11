@@ -28,13 +28,18 @@ class LocalOnnxEmbedder:
         *,
         expected_dim: int | None = None,
         cache_dir: str | None = None,
+        threads: int | None = None,
     ) -> None:
         # Imported lazily: fastembed pulls in onnxruntime, and modules that only
         # need the type should not pay that import cost.
         from fastembed import TextEmbedding
 
         self._model_name = model_name
-        self._model = TextEmbedding(model_name, cache_dir=cache_dir)
+        # threads=1 is a memory decision, not a speed one. onnxruntime allocates a
+        # memory arena per intra-op thread; on a 1 GB container the default (one per
+        # vCPU) was enough to get the process OOM-killed. Searching 135 vectors does
+        # not need parallelism — it takes 4 ms single-threaded.
+        self._model = TextEmbedding(model_name, cache_dir=cache_dir, threads=threads)
         self._dimension = self._resolve_dimension(model_name)
         if expected_dim is not None and expected_dim != self._dimension:
             raise ValueError(
@@ -83,5 +88,6 @@ def build_embedder(settings: Settings | None = None) -> LocalOnnxEmbedder:
             cfg.embeddings_model,
             expected_dim=cfg.embeddings_dim,
             cache_dir=cfg.embeddings_cache_dir,
+            threads=cfg.embeddings_threads,
         )
     return _embedder

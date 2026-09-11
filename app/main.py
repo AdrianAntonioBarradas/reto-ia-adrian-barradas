@@ -7,11 +7,15 @@ decision in it lives behind ``app.agent``.
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
 from app.api import agent_card, health, responses
 from app.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,7 +24,28 @@ logging.basicConfig(
 
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Build the retrieval index before accepting traffic.
+
+    Loading it lazily on the first request meant the first *user* paid several
+    seconds for it — and worse, that an out-of-memory kill happened mid-request and
+    looked like a 502 from a healthy service. Doing it here makes the failure
+    happen at boot, where the healthcheck catches it and the deploy is not promoted.
+    """
+    from app.retrieval.engine import get_engine
+
+    engine = get_engine(settings)
+    logger.info(
+        "retrieval index ready",
+        extra={"mode": engine.mode, "chunks": engine.chunk_count},
+    )
+    yield
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Agente de CV — Adrián Barradas",
     version="0.1.0",
     # The interactive docs describe an authenticated endpoint; there is nothing

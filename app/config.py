@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     # Inside the app directory so the model is baked into the built image at
     # build time rather than downloaded on the first request.
     embeddings_cache_dir: str = ".fastembed_cache"
+    # onnxruntime allocates a memory arena per intra-op thread. One is plenty for
+    # a 135-vector index and keeps the container inside a 1 GB limit.
+    embeddings_threads: int = Field(default=1, ge=1, le=8)
 
     # --- Retrieval ----------------------------------------------------------
     # The ladder switch: one pipeline, four modes, one evaluation set.
