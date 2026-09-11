@@ -323,3 +323,35 @@ comando descarga los ~220 MB del modelo ONNX durante la construcción. Sin eso, 
 primera petición tras un arranque en frío paga la descarga, y un fallo de red se
 manifiesta como un timeout ante quien está evaluando el agente en vez de como una
 build rota.
+
+
+---
+
+## Referencias
+
+El diseño se apoya en trabajo publicado. Se listan porque una decisión defendida con
+una fuente es más fácil de discutir —y de refutar— que una defendida con intuición.
+
+- Lewis et al. (2020), *Retrieval-Augmented Generation for Knowledge-Intensive NLP
+  Tasks* — la separación entre memoria paramétrica del modelo y memoria externa
+  recuperada. <https://arxiv.org/abs/2005.11401>
+- Liu et al. (2023), *Lost in the Middle: How Language Models Use Long Contexts* — por
+  qué una ventana de contexto más grande no equivale a recuperación confiable, y por
+  qué el modo `context` es una línea base a medir y no una solución.
+  <https://arxiv.org/abs/2307.03172>
+- Es et al. (2023), *RAGAS: Automated Evaluation of Retrieval Augmented Generation* —
+  separar calidad de recuperación de calidad de respuesta.
+  <https://arxiv.org/abs/2309.15217>
+- Anthropic (2024), *Introducing Contextual Retrieval* — anteponer contexto al chunk
+  antes de embeberlo, y la complementariedad entre recuperación densa y BM25.
+  <https://www.anthropic.com/engineering/contextual-retrieval>
+- Qdrant, *Hybrid Search* — fusión de rangos frente a mezcla de puntajes.
+  <https://qdrant.tech/documentation/search/text-search/hybrid-search/>
+- OWASP GenAI, *LLM Top 10 (2025)* — el marco de `docs/SECURITY.md`.
+  <https://genai.owasp.org/llm-top-10/>
+- NIST AI 600-1, *Generative Artificial Intelligence Profile* — información de alta
+  integridad como aquella que puede verificarse y ligarse a evidencia; es el
+  argumento conceptual detrás de los metadatos de procedencia.
+  <https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf>
+- Open Responses — especificación y pruebas de conformidad.
+  <https://www.openresponses.org/>

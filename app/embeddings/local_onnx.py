@@ -29,11 +29,13 @@ class LocalOnnxEmbedder:
         expected_dim: int | None = None,
         cache_dir: str | None = None,
         threads: int | None = None,
+        batch_size: int = 8,
     ) -> None:
         # Imported lazily: fastembed pulls in onnxruntime, and modules that only
         # need the type should not pay that import cost.
         from fastembed import TextEmbedding
 
+        self._batch_size = batch_size
         self._model_name = model_name
         # threads=1 is a memory decision, not a speed one. onnxruntime allocates a
         # memory arena per intra-op thread; on a 1 GB container the default (one per
@@ -65,9 +67,17 @@ class LocalOnnxEmbedder:
         return self._dimension
 
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
+        """Embed in small batches.
+
+        Batch size is a memory decision. Measured on this corpus: the ONNX session
+        alone is ~660 MB resident, and embedding all 135 chunks in one call peaked at
+        1202 MB — over the 1 GB container limit, which is what was killing the
+        deployment at startup. In batches of 8 the peak is 708 MB. The corpus is
+        embedded once at boot, so the throughput difference is irrelevant.
+        """
         if not texts:
             return []
-        vectors = self._model.embed(list(texts))
+        vectors = self._model.embed(list(texts), batch_size=self._batch_size)
         return [[float(x) for x in vector] for vector in vectors]
 
     def embed_query(self, text: str) -> list[float]:
@@ -89,5 +99,6 @@ def build_embedder(settings: Settings | None = None) -> LocalOnnxEmbedder:
             expected_dim=cfg.embeddings_dim,
             cache_dir=cfg.embeddings_cache_dir,
             threads=cfg.embeddings_threads,
+            batch_size=cfg.embeddings_batch_size,
         )
     return _embedder

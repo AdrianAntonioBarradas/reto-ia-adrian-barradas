@@ -66,8 +66,20 @@ detectó antes de cualquier commit, pero depender de detectarlo no es un control
 **Superficie:** mínima. Una sola fuente de verdad, versionada en git, derivada a mano.
 No hay ingesta automática, ni contenido de usuarios, ni scraping.
 
-**Control:** cualquier cambio al corpus pasa por revisión de código y por las pruebas
-de privacidad y de estructura.
+**Controles:**
+
+1. Cualquier cambio al corpus pasa por revisión de código y por las pruebas de
+   privacidad y de estructura.
+2. `data/manifests/canonical.json` guarda un SHA-256 por archivo más un digest del
+   corpus completo. `tests/unit/test_corpus_manifest.py` compara ese manifiesto contra
+   el disco y **falla la build** si divergen, así que un cambio al corpus es tan
+   visible como un cambio al código. Regenerar es explícito:
+   `devbox run manifest`.
+3. El índice se reconstruye de forma determinista desde el corpus en cada arranque.
+   No hay embeddings persistidos que puedan quedar desincronizados de su fuente.
+
+El digest del corpus completo también sirve para citar, en un reporte de evaluación,
+exactamente contra qué datos se midió.
 
 ---
 

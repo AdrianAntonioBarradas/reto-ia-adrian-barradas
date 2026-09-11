@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     # onnxruntime allocates a memory arena per intra-op thread. One is plenty for
     # a 135-vector index and keeps the container inside a 1 GB limit.
     embeddings_threads: int = Field(default=1, ge=1, le=8)
+    # Peak-memory control, measured: embedding the whole corpus in one call peaks
+    # at ~1200 MB and gets the container killed; in batches of 8 it peaks at ~708 MB.
+    embeddings_batch_size: int = Field(default=8, ge=1, le=256)
 
     # --- Retrieval ----------------------------------------------------------
     # The ladder switch: one pipeline, four modes, one evaluation set.

@@ -35,6 +35,9 @@
       ],
       "eval-retrieval": [
         "uv run python -m scripts.eval_retrieval --write"
+      ],
+      "manifest": [
+        "uv run python -m scripts.manifest --write"
       ]
     }
   }
