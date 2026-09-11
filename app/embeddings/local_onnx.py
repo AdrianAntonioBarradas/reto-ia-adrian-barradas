@@ -16,7 +16,6 @@ build time (see the Railway build step), never on the first request.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from functools import lru_cache
 
 from app.config import Settings, get_settings
 
@@ -65,8 +64,13 @@ class LocalOnnxEmbedder:
         return [float(x) for x in vector]
 
 
-@lru_cache(maxsize=1)
+_embedder: LocalOnnxEmbedder | None = None
+
+
 def build_embedder(settings: Settings | None = None) -> LocalOnnxEmbedder:
-    """Cached: loading the ONNX session takes seconds and is not per-request work."""
-    cfg = settings or get_settings()
-    return LocalOnnxEmbedder(cfg.embeddings_model, expected_dim=cfg.embeddings_dim)
+    """Process-wide singleton: loading the ONNX session takes seconds."""
+    global _embedder
+    if _embedder is None:
+        cfg = settings or get_settings()
+        _embedder = LocalOnnxEmbedder(cfg.embeddings_model, expected_dim=cfg.embeddings_dim)
+    return _embedder

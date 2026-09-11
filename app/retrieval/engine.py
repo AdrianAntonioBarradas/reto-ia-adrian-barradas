@@ -20,7 +20,6 @@ only variable is the retrieval step.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from functools import lru_cache
 
 from app.config import RetrievalMode, Settings, get_settings
 from app.embeddings.base import Embedder
@@ -124,18 +123,29 @@ class RetrievalEngine:
         return results
 
 
-@lru_cache(maxsize=1)
+_engine: RetrievalEngine | None = None
+
+
 def get_engine(settings: Settings | None = None) -> RetrievalEngine:
+    """Process-wide singleton.
+
+    Not lru_cache: Settings is a pydantic model and therefore unhashable, and
+    building the index loads the encoder, so it must happen exactly once.
+    """
+    global _engine
+    if _engine is not None:
+        return _engine
     cfg = settings or get_settings()
     embedder: Embedder | None = None
     if cfg.retrieval_mode in {"dense", "hybrid"}:
         from app.embeddings.local_onnx import build_embedder
 
         embedder = build_embedder(cfg)
-    return RetrievalEngine(
+    _engine = RetrievalEngine(
         get_corpus(),
         embedder,
         mode=cfg.retrieval_mode,
         top_k=cfg.retrieval_top_k,
         candidates=cfg.retrieval_candidates,
     )
+    return _engine

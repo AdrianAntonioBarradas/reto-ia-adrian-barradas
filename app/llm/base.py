@@ -15,11 +15,19 @@ Role = Literal["system", "user", "assistant", "tool"]
 
 @dataclass(frozen=True, slots=True)
 class ToolCall:
-    """A tool the model asked us to run. ``arguments`` is raw JSON text."""
+    """A tool the model asked us to run. ``arguments`` is raw JSON text.
+
+    ``provider_extra`` carries vendor-specific data that must be handed back
+    verbatim on the next turn. Gemini 3 puts a ``thought_signature`` here and
+    rejects the follow-up request without it; other providers leave it empty. The
+    field is opaque on purpose — the loop moves it around without interpreting it,
+    so a new provider's requirement costs nothing above the adapter.
+    """
 
     id: str
     name: str
     arguments: str
+    provider_extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

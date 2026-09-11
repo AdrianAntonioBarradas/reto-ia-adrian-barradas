@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # OpenAI. Switching provider is three environment variables, not a code change.
     llm_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
     llm_api_key: str = ""
-    llm_model: str = "gemini-2.5-flash"
+    llm_model: str = "gemini-3.5-flash"
     llm_max_output_tokens: int = 1024
     llm_temperature: float = 0.2
     llm_timeout_s: float = 45.0
