@@ -46,6 +46,7 @@ async def create_response(
             "agent_error",
             "El agente no pudo completar la respuesta.",
             model=model_label,
+            request=body,
         )
 
     # Privacy-aware telemetry: what was asked *about*, never what was said.
@@ -65,4 +66,4 @@ async def create_response(
         output_tokens=result.usage.get("completion_tokens", 0),
         total_tokens=result.usage.get("total_tokens", 0),
     )
-    return text_response(result.text, model=model_label, usage=usage)
+    return text_response(result.text, model=model_label, usage=usage, request=body)

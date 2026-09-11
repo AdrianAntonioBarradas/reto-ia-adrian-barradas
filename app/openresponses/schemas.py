@@ -134,10 +134,20 @@ class OutputMessage(BaseModel):
 OutputItem = Annotated[OutputMessage, Field(discriminator="type")]
 
 
+class InputTokensDetails(BaseModel):
+    cached_tokens: int = 0
+
+
+class OutputTokensDetails(BaseModel):
+    reasoning_tokens: int = 0
+
+
 class Usage(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
     total_tokens: int = 0
+    input_tokens_details: InputTokensDetails = Field(default_factory=InputTokensDetails)
+    output_tokens_details: OutputTokensDetails = Field(default_factory=OutputTokensDetails)
 
 
 class ResponseError(BaseModel):
@@ -145,20 +155,89 @@ class ResponseError(BaseModel):
     message: str
 
 
+class IncompleteDetails(BaseModel):
+    reason: str
+
+
+class TextFormat(BaseModel):
+    type: Literal["text"] = "text"
+
+
+class TextField(BaseModel):
+    format: TextFormat = Field(default_factory=TextFormat)
+
+
 class ResponseObject(BaseModel):
+    """A response, as the specification defines it.
+
+    Every one of these fields is **required** — the schema has no optional
+    properties. That was not obvious from reading the prose, and it is the reason
+    this object is so much larger than it looks like it needs to be: a CV agent has
+    no use for ``top_logprobs`` or ``frequency_penalty``, but a conformant response
+    carries them anyway, echoing what was in effect for the turn.
+
+    This was found by running the specification's own compliance suite against the
+    deployed endpoint, not by reading the spec. The hand-written contract tests in
+    ``tests/api/`` had passed all along, because the same incomplete understanding
+    wrote both the tests and the implementation. A test you wrote from your own
+    reading cannot tell you that your reading was wrong.
+    """
+
     id: str = Field(default_factory=lambda: _new_id("resp"))
     object: Literal["response"] = "response"
     created_at: int = Field(default_factory=lambda: int(time.time()))
+    completed_at: int | None = None
     status: ResponseStatus = "completed"
     model: str = "cv-agent"
     output: list[OutputItem] = Field(default_factory=list)
-    usage: Usage = Field(default_factory=Usage)
+
     error: ResponseError | None = None
+    incomplete_details: IncompleteDetails | None = None
+    usage: Usage | None = Field(default_factory=Usage)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    # Echoed request configuration. The agent does not act on most of these, but a
+    # conformant response reports what was in effect.
+    instructions: str | None = None
+    previous_response_id: str | None = None
+    max_output_tokens: int | None = None
+    max_tool_calls: int | None = None
+    prompt_cache_key: str | None = None
+    safety_identifier: str | None = None
+    reasoning: dict[str, Any] | None = None
+    text: TextField = Field(default_factory=TextField)
+    tools: list[dict[str, Any]] = Field(default_factory=list)
+    tool_choice: str = "auto"
+    truncation: Literal["auto", "disabled"] = "disabled"
+    parallel_tool_calls: bool = True
+    store: bool = False
+    background: bool = False
+    service_tier: str = "default"
+    temperature: float = 1.0
+    top_p: float = 1.0
+    top_logprobs: int = 0
+    presence_penalty: float = 0.0
+    frequency_penalty: float = 0.0
 
     @property
     def output_text(self) -> str:
         return "\n".join(part.text for item in self.output for part in item.content if part.text)
+
+
+def _echo_request(response: ResponseObject, request: ResponsesRequest | None) -> ResponseObject:
+    """Reflect the caller's own settings back, as the schema expects."""
+    if request is None:
+        return response
+    response.instructions = request.instructions
+    response.previous_response_id = request.previous_response_id
+    response.max_output_tokens = request.max_output_tokens
+    response.store = bool(request.store)
+    response.tools = request.tools or []
+    if isinstance(request.tool_choice, str):
+        response.tool_choice = request.tool_choice
+    if request.temperature is not None:
+        response.temperature = request.temperature
+    return response
 
 
 def text_response(
@@ -167,17 +246,31 @@ def text_response(
     model: str = "cv-agent",
     usage: Usage | None = None,
     metadata: dict[str, Any] | None = None,
+    request: ResponsesRequest | None = None,
 ) -> ResponseObject:
-    return ResponseObject(
+    now = int(time.time())
+    response = ResponseObject(
         status="completed",
+        created_at=now,
+        completed_at=now,
         model=model,
         output=[OutputMessage(content=[OutputTextContent(text=text)])],
         usage=usage or Usage(),
         metadata=metadata or {},
     )
+    return _echo_request(response, request)
 
 
-def error_response(code: str, message: str, *, model: str = "cv-agent") -> ResponseObject:
-    return ResponseObject(
-        status="failed", model=model, error=ResponseError(code=code, message=message)
+def error_response(
+    code: str,
+    message: str,
+    *,
+    model: str = "cv-agent",
+    request: ResponsesRequest | None = None,
+) -> ResponseObject:
+    response = ResponseObject(
+        status="failed",
+        model=model,
+        error=ResponseError(code=code, message=message),
     )
+    return _echo_request(response, request)

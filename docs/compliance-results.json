@@ -1,0 +1,882 @@
+{
+  "summary": {
+    "passed": 6,
+    "failed": 11,
+    "skipped": 0,
+    "total": 17
+  },
+  "results": [
+    {
+      "id": "response-output-phase-schema",
+      "name": "Response Output Phase Schema",
+      "description": "Validates ResponseResource schema support for assistant output phase labels",
+      "status": "passed",
+      "duration": 1,
+      "request": {
+        "model": "cv-agent",
+        "note": "Local schema fixture; no HTTP request is sent."
+      },
+      "response": {
+        "id": "resp_phase_schema",
+        "object": "response",
+        "created_at": 1764967971,
+        "completed_at": 1764967972,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_phase_commentary",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "I am checking the answer.",
+                "annotations": []
+              }
+            ],
+            "phase": "commentary"
+          },
+          {
+            "type": "message",
+            "id": "msg_phase_final",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "The answer is four.",
+                "annotations": []
+              }
+            ],
+            "phase": "final_answer"
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": {
+          "effort": null,
+          "summary": null
+        },
+        "usage": {
+          "input_tokens": 1,
+          "output_tokens": 2,
+          "total_tokens": 3,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": true,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    },
+    {
+      "id": "websocket-response",
+      "name": "WebSocket Response",
+      "description": "Creates a response over WebSocket and validates returned streaming events",
+      "status": "failed",
+      "duration": 259,
+      "request": {
+        "type": "response.create",
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Count from 1 to 3."
+          }
+        ]
+      },
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "websocket-sequential-responses",
+      "name": "WebSocket Sequential Responses",
+      "description": "Sends multiple response.create messages on one WebSocket connection and validates sequential terminal responses",
+      "status": "failed",
+      "duration": 252,
+      "request": [
+        {
+          "type": "response.create",
+          "model": "cv-agent",
+          "store": false,
+          "input": "Reply with exactly: first"
+        },
+        {
+          "type": "response.create",
+          "model": "cv-agent",
+          "store": false,
+          "input": "Reply with exactly: second"
+        }
+      ],
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "websocket-failed-continuation-evicts-cache",
+      "name": "WebSocket Failed Continuation Evicts Cache",
+      "description": "Fails a store:false continuation and verifies the referenced previous_response_id is evicted from connection-local state",
+      "status": "failed",
+      "duration": 301,
+      "request": {
+        "type": "response.create",
+        "model": "cv-agent",
+        "store": false,
+        "input": "Remember the code word: ember. Reply with OK."
+      },
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "websocket-continuation",
+      "name": "WebSocket Continuation",
+      "description": "Continues a store:false response on the active WebSocket using previous_response_id and only new input",
+      "status": "failed",
+      "duration": 365,
+      "request": {
+        "type": "response.create",
+        "model": "cv-agent",
+        "store": false,
+        "input": "Remember the code word: cobalt. Reply with OK."
+      },
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "websocket-compact-new-chain",
+      "name": "WebSocket Compact New Chain",
+      "description": "Uses /responses/compact output as the base input for a new WebSocket response without previous_response_id",
+      "status": "failed",
+      "duration": 386,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "Remember the compaction code word: slate."
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "OK."
+              }
+            ]
+          },
+          {
+            "type": "message",
+            "role": "user",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "Compress this conversation for later continuation."
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "detail": "Not Found"
+      },
+      "errors": [
+        "HTTP 404 from /responses/compact: {\"detail\":\"Not Found\"}"
+      ]
+    },
+    {
+      "id": "websocket-reconnect-store-false-recovery",
+      "name": "WebSocket Store False Reconnect Recovery",
+      "description": "Creates a store:false response, reconnects on a new WebSocket, validates previous_response_not_found, then starts a clean recovery response",
+      "status": "failed",
+      "duration": 391,
+      "request": {
+        "type": "response.create",
+        "model": "cv-agent",
+        "store": false,
+        "input": "Remember the code word: copper. Reply with OK."
+      },
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "websocket-previous-response-not-found",
+      "name": "WebSocket Missing Previous Response",
+      "description": "Verifies store:false continuation with an uncached previous_response_id returns previous_response_not_found",
+      "status": "failed",
+      "duration": 395,
+      "request": {
+        "type": "response.create",
+        "model": "cv-agent",
+        "store": false,
+        "previous_response_id": "resp_openresponses_missing_1789126865807",
+        "input": "This should fail because the previous response is missing."
+      },
+      "errors": [
+        "WebSocket connection failed"
+      ]
+    },
+    {
+      "id": "compact-response",
+      "name": "Compaction Endpoint",
+      "description": "Compacts a short conversation with prompt_cache_key and validates the compacted response schema",
+      "status": "failed",
+      "duration": 525,
+      "request": {
+        "model": "cv-agent",
+        "prompt_cache_key": "openresponses-compact-test",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "We agreed to launch on Tuesday and notify support first."
+          },
+          {
+            "type": "message",
+            "role": "assistant",
+            "content": "Understood. The launch is Tuesday, with support notified beforehand."
+          }
+        ]
+      },
+      "response": {
+        "detail": "Not Found"
+      },
+      "errors": [
+        "HTTP 404: [object Object]"
+      ]
+    },
+    {
+      "id": "compact-missing-model",
+      "name": "Compaction Missing Required Model",
+      "description": "Rejects a compact request that omits the required model field",
+      "status": "failed",
+      "duration": 526,
+      "request": {
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Compact this conversation."
+          }
+        ]
+      },
+      "response": {
+        "detail": "Not Found"
+      },
+      "errors": [
+        "HTTP 404: [object Object]"
+      ]
+    },
+    {
+      "id": "basic-response",
+      "name": "Basic Text Response",
+      "description": "Simple user message, validates ResponseResource schema",
+      "status": "passed",
+      "duration": 1713,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Say hello in exactly 3 words."
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_34b4e38c7f7b4a58ad001b1fce81e510",
+        "object": "response",
+        "created_at": 1789126867,
+        "completed_at": 1789126867,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_f0ab5a136ade4d23a209acfd6f9359c6",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Hello there, welcome!",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": null,
+        "usage": {
+          "input_tokens": 87,
+          "output_tokens": 11,
+          "total_tokens": 98,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    },
+    {
+      "id": "streaming-response",
+      "name": "Streaming Response",
+      "description": "Validates SSE streaming events and final response",
+      "status": "failed",
+      "duration": 1897,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Count from 1 to 5."
+          }
+        ],
+        "stream": true
+      },
+      "response": null,
+      "errors": [
+        ": Expected object, received null"
+      ],
+      "streamEvents": 0
+    },
+    {
+      "id": "assistant-phase",
+      "name": "Assistant Message Phase",
+      "description": "Sends assistant history with phase labels and validates contract acceptance",
+      "status": "passed",
+      "duration": 2311,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "assistant",
+            "phase": "commentary",
+            "content": "I should answer with the saved number."
+          },
+          {
+            "type": "message",
+            "role": "assistant",
+            "phase": "final_answer",
+            "content": "The number is four."
+          },
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Repeat only the number."
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_be532c9a2e044ea594fdaafba96de503",
+        "object": "response",
+        "created_at": 1789126868,
+        "completed_at": 1789126868,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_b6ef77eb97ab4105aa7faac40232ed07",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Four.",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": null,
+        "usage": {
+          "input_tokens": 121,
+          "output_tokens": 5,
+          "total_tokens": 126,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    },
+    {
+      "id": "multi-turn",
+      "name": "Multi-turn Conversation",
+      "description": "Send assistant + user messages as conversation history",
+      "status": "passed",
+      "duration": 2294,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "My name is Alice."
+          },
+          {
+            "type": "message",
+            "role": "assistant",
+            "content": "Hello Alice! Nice to meet you. How can I help you today?"
+          },
+          {
+            "type": "message",
+            "role": "user",
+            "content": "What is my name?"
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_e2eb0fc7f391422ea1e4116a00bae580",
+        "object": "response",
+        "created_at": 1789126867,
+        "completed_at": 1789126867,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_1f38466996bf473fa9a9911bb6e40ec0",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "Your name is Alice — you just told me. 🙂\n\nIf you have questions about Adrián's professional background, experience, or skills, I'm happy to help with that.",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": null,
+        "usage": {
+          "input_tokens": 112,
+          "output_tokens": 52,
+          "total_tokens": 164,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    },
+    {
+      "id": "tool-calling",
+      "name": "Tool Calling",
+      "description": "Define a function tool and verify function_call output",
+      "status": "failed",
+      "duration": 2601,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": "What's the weather like in San Francisco?"
+          }
+        ],
+        "tools": [
+          {
+            "type": "function",
+            "name": "get_weather",
+            "description": "Get the current weather for a location",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              "required": [
+                "location"
+              ]
+            }
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_b673e17a8afd4cd38998b10f6f42b658",
+        "object": "response",
+        "created_at": 1789126868,
+        "completed_at": 1789126868,
+        "status": "completed",
+        "model": "cv-agent",
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_e7061733488840718dea24bc4766049f",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "El clima no es algo que pueda consultar: mi función es hablar sobre la trayectoria profesional de Adrián Antonio Barradas Cerna (experiencia, proyectos, habilidades, formación).\n\nSi quieres, puedo contarte, por ejemplo, en qué ha trabajado, qué tecnologías domina o detalles de algún proyecto suyo. ¿Te gustaría saber algo de eso?",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "incomplete_details": null,
+        "usage": {
+          "input_tokens": 87,
+          "output_tokens": 144,
+          "total_tokens": 231,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "metadata": {},
+        "instructions": null,
+        "previous_response_id": null,
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "prompt_cache_key": null,
+        "safety_identifier": null,
+        "reasoning": null,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "tools": [
+          {
+            "type": "function",
+            "name": "get_weather",
+            "description": "Get the current weather for a location",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "location": {
+                  "type": "string",
+                  "description": "The city and state, e.g. San Francisco, CA"
+                }
+              },
+              "required": [
+                "location"
+              ]
+            }
+          }
+        ],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "temperature": 1,
+        "top_p": 1,
+        "top_logprobs": 0,
+        "presence_penalty": 0,
+        "frequency_penalty": 0
+      },
+      "errors": [
+        "tools.0.strict: Invalid input"
+      ]
+    },
+    {
+      "id": "system-prompt",
+      "name": "System Prompt",
+      "description": "Include system role message in input",
+      "status": "passed",
+      "duration": 2675,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "system",
+            "content": "You are a pirate. Always respond in pirate speak."
+          },
+          {
+            "type": "message",
+            "role": "user",
+            "content": "Say hello."
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_4bf02aa2365540b980b0a67552db5ca9",
+        "object": "response",
+        "created_at": 1789126868,
+        "completed_at": 1789126868,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_230efa28f37a48f998fc79352e79867b",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "¡Arrr, buenas, marinero! Soy el asistente que conoce la trayectoria de Adrián Antonio Barradas Cerna, aunque me hables como si estuviéramos en alta mar. ¿En qué te puedo ayudar sobre su experiencia, sus proyectos o sus habilidades, compañero?",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": null,
+        "usage": {
+          "input_tokens": 98,
+          "output_tokens": 113,
+          "total_tokens": 211,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    },
+    {
+      "id": "image-input",
+      "name": "Image Input",
+      "description": "Send image URL in user content",
+      "status": "passed",
+      "duration": 3215,
+      "request": {
+        "model": "cv-agent",
+        "input": [
+          {
+            "type": "message",
+            "role": "user",
+            "content": [
+              {
+                "type": "input_text",
+                "text": "What do you see in this image? Answer in one sentence."
+              },
+              {
+                "type": "input_image",
+                "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABmklEQVR42tyWAaTyUBzFew/eG4AHz+MBSAHKBiJRGFKwIgQQJKLUIioBIhCAiCAAEizAQIAECaASqFFJq84nudjnaqvuPnxzgP9xfrq5938csPn7PwHTKSoViCIEAYEAMhmoKsU2mUCWEQqB5xEMIp/HaGQG2G6RSuH9HQ7H34rFrtPbdz4jl6PbwmEsl3QA1mt4vcRKk8dz9eg6IpF7tt9fzGY0gCgafFRFo5Blc5vLhf3eCOj1yNhM5GRMVK0aATxPZoz09YXjkQDmczJgquGQAPp9WwCNBgG027YACgUC6HRsAZRKBDAY2AJoNv/ZnwzA6WScznG3p4UAymXGAEkyXrTFAh8fLAGqagQAyGaZpYsi7bHTNPz8MEj//LxuFPo+UBS8vb0KaLXubrRa7aX0RMLCykwmn0z3+XA4WACcTpCkh9MFAZpmuVXo+mO/w+/HZvNgbblcUCxaSo/Hyck80Yu6XXDcvfVZr79cvMZjuN2U9O9vKAqjZrfbIZ0mV4TUi9Xqz6jddNy//7+e3n8Fhf/Llo2kxi8AQyGRoDkmAhAAAAAASUVORK5CYII="
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "id": "resp_7fa6309d7a164cf48698fcb443354e39",
+        "object": "response",
+        "created_at": 1789126868,
+        "completed_at": 1789126868,
+        "status": "completed",
+        "incomplete_details": null,
+        "model": "cv-agent",
+        "previous_response_id": null,
+        "instructions": null,
+        "output": [
+          {
+            "type": "message",
+            "id": "msg_cd5a3083f8d74078a745fd65b1fc865d",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+              {
+                "type": "output_text",
+                "text": "No puedo ver ninguna imagen adjunta en tu mensaje: solo tengo acceso a información sobre la trayectoria profesional de Adrián. ¿Te gustaría preguntarme algo sobre su experiencia, proyectos o habilidades?",
+                "annotations": []
+              }
+            ]
+          }
+        ],
+        "error": null,
+        "tools": [],
+        "tool_choice": "auto",
+        "truncation": "disabled",
+        "parallel_tool_calls": true,
+        "text": {
+          "format": {
+            "type": "text"
+          }
+        },
+        "top_p": 1,
+        "presence_penalty": 0,
+        "frequency_penalty": 0,
+        "top_logprobs": 0,
+        "temperature": 1,
+        "reasoning": null,
+        "usage": {
+          "input_tokens": 91,
+          "output_tokens": 90,
+          "total_tokens": 181,
+          "input_tokens_details": {
+            "cached_tokens": 0
+          },
+          "output_tokens_details": {
+            "reasoning_tokens": 0
+          }
+        },
+        "max_output_tokens": null,
+        "max_tool_calls": null,
+        "store": false,
+        "background": false,
+        "service_tier": "default",
+        "metadata": {},
+        "safety_identifier": null,
+        "prompt_cache_key": null
+      },
+      "errors": []
+    }
+  ]
+}
