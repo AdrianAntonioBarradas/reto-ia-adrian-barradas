@@ -97,6 +97,13 @@ más sin degradar lo que ya ordenaba bien.
 Que corra sin LLM no es un detalle: significa que puede ser una compuerta de CI, cosa
 que una evaluación con modelo nunca puede permitirse.
 
+**Respuestas** — 42 casos contra el agente real ([`docs/EVALUATION-ANSWERS.md`](docs/EVALUATION-ANSWERS.md)):
+
+**42/42 sin ninguna afirmación falsa**, con `claude-sonnet-5` y recuperación híbrida.
+Latencia p50 ~4 s, dominada por el LLM. La calificación es determinista —coincidencia
+de subcadenas con conciencia de negación, sin modelo juez—: más tosca que un juez, pero
+gratuita, reproducible, y **nunca inventa un aprobado**.
+
 **Errores propios que las pruebas atraparon** — se documentan porque *"¿cómo verificas
 que el agente es confiable?"* se contesta mejor con fallos reales que con una promesa.
 Cuatro están en [DEC-011](docs/DECISIONS.md#dec-011--errores-propios-encontrados-por-las-pruebas),

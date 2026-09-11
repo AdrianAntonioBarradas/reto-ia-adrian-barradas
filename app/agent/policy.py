@@ -46,9 +46,17 @@ _REFUSAL_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bexpectativa[s]?\s+(salarial|economica|de\s+sueldo)\b",
         r"\b(salary|compensation)\b",
     ),
+    # These must match a request *for a contact value*, not a mention of a channel.
+    # The first version matched the bare word "whatsapp", so the technical question
+    # "¿implementó la integración de WhatsApp Business?" was refused as a request for
+    # personal contact details. A false refusal on a real CV question is a worse
+    # product than a slightly over-broad answer.
     "datos de contacto personales": (
-        r"\b(numero|telefono|celular|whatsapp|movil)\b.*\b(de\s+el|suyo|contacto|adrian)?\b",
-        r"\bcual\s+es\s+su\s+(telefono|numero|direccion|domicilio)\b",
+        r"\b(cual\s+es|dame|pasame|comparte(me)?|me\s+das|tienes)\b[^?]{0,40}"
+        r"\b(telefono|numero\s+(de\s+)?(telefono|celular|contacto|whatsapp)|celular|movil"
+        r"|direccion|domicilio)\b",
+        r"\bnumero\s+de\s+(telefono|celular|contacto|whatsapp)\b",
+        r"\b(su|tu)\s+(telefono|celular|movil|domicilio|whatsapp)\b",
         r"\b(donde|en\s+que\s+calle)\s+vive\b",
         r"\bphone\s+number\b",
     ),
