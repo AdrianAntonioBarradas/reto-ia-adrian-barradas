@@ -37,6 +37,13 @@ class ChatMessage:
     tool_calls: tuple[ToolCall, ...] = ()
     # Set on role="tool" messages to bind a result back to its request.
     tool_call_id: str | None = None
+    # The provider's own representation of an assistant turn, replayed verbatim.
+    #
+    # Reasoning models attach state to their turn that must come back unchanged:
+    # Anthropic's thinking blocks, Gemini's thought signatures. Reconstructing the
+    # turn from text and tool calls silently drops it, and the failure only appears
+    # on the *next* request. When this is set the adapter sends it as-is.
+    provider_raw: tuple[dict[str, Any], ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,6 +60,8 @@ class LLMResponse:
     finish_reason: str = "stop"
     usage: dict[str, int] = field(default_factory=dict)
     model: str = ""
+    # Hand back to the next turn's assistant ChatMessage. See ChatMessage.provider_raw.
+    provider_raw: tuple[dict[str, Any], ...] | None = None
 
 
 @runtime_checkable

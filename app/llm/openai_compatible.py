@@ -27,6 +27,7 @@ import httpx
 
 from app.config import Settings, get_settings
 from app.llm.base import ChatMessage, LLMResponse, ToolCall, ToolSpec
+from app.llm.errors import LLMError
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,6 @@ logger = logging.getLogger(__name__)
 RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 MAX_ATTEMPTS = 4
 BASE_BACKOFF_S = 1.5
-
-
-class LLMError(RuntimeError):
-    """Provider call failed. Carries the status so the API layer can map it."""
-
-    def __init__(self, message: str, *, status_code: int | None = None) -> None:
-        super().__init__(message)
-        self.status_code = status_code
 
 
 def _message_to_wire(message: ChatMessage) -> dict[str, Any]:

@@ -200,7 +200,11 @@ class CVAgent:
 
             messages.append(
                 ChatMessage(
-                    role="assistant", content=response.content, tool_calls=response.tool_calls
+                    role="assistant",
+                    content=response.content,
+                    tool_calls=response.tool_calls,
+                    # Carries thinking blocks / thought signatures back unchanged.
+                    provider_raw=response.provider_raw,
                 )
             )
             for call in response.tool_calls:
@@ -231,7 +235,7 @@ def get_agent(settings: Settings | None = None) -> CVAgent:
     global _agent
     if _agent is None:
         cfg = settings or get_settings()
-        from app.llm.openai_compatible import build_llm_adapter
+        from app.llm.factory import build_llm_adapter
 
         _agent = CVAgent(
             build_llm_adapter(cfg),
