@@ -174,11 +174,11 @@ Derivado, nunca editado a mano, reconstruible desde cero en cada arranque.
 ```python
 @dataclass(frozen=True, slots=True)
 class Chunk:
-    id: str                   # "skill:backend:Django" · "experience#cicada:nats_price_feed"
-    text: str                 # autocontenido: nombra su propio sujeto
-    entity_type: str          # profile | education | experience | project | skill | skills | policy
-    entity_id: str            # a qué registro del YAML corresponde
-    source_id: str            # heredado del YAML: trazabilidad hasta el maestro
+    id: str  # "skill:backend:Django" · "experience#cicada:nats_price_feed"
+    text: str  # autocontenido: nombra su propio sujeto
+    entity_type: str  # profile | education | experience | project | skill | skills | policy
+    entity_id: str  # a qué registro del YAML corresponde
+    source_id: str  # heredado del YAML: trazabilidad hasta el maestro
     context_prefix: str = ""  # se antepone SÓLO al embeber
     metadata: dict = {}
 
@@ -227,10 +227,10 @@ Content-Type: application/json
 
 ```python
 class ResponsesRequest(BaseModel):
-    model_config = ConfigDict(extra="allow")   # ← no es descuido
+    model_config = ConfigDict(extra="allow")  # ← no es descuido
 
     model: str | None
-    input: str | list[dict]                    # cadena suelta O arreglo de items
+    input: str | list[dict]  # cadena suelta O arreglo de items
     instructions: str | None
     tools: list[dict] | None
     tool_choice: Any
@@ -264,7 +264,7 @@ faltantes en la primera corrida de conformidad.
 ```python
 class ResponseObject(BaseModel):
     # identidad y estado
-    id: str                       # "resp_<hex>"
+    id: str  # "resp_<hex>"
     object: Literal["response"]
     created_at: int
     completed_at: int | None
@@ -412,7 +412,7 @@ una ruta: nombra una herramienta tipada y el código de aplicación decide qué 
 @dataclass(frozen=True, slots=True)
 class ToolResult:
     data: dict[str, Any]
-    evidence_ids: tuple[str, ...] = ()   # separado de `data` a propósito
+    evidence_ids: tuple[str, ...] = ()  # separado de `data` a propósito
 ```
 
 `evidence_ids` viaja aparte del payload para que una respuesta se pueda rastrear hasta
