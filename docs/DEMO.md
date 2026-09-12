@@ -13,7 +13,7 @@ demuestra la integración real.
 
 - Agente registrado en **Agentes → Añadir un agente**, importado desde
   `https://<host>/.well-known/agent-card.json`.
-- Pestañas abiertas: `docs/EVALUATION-LADDER.md`, `docs/COMPLIANCE.md`, el repositorio.
+- Pestañas abiertas: `docs/EVALUACION.md`, el repositorio.
 - `GET /health` respondiendo 200.
 
 ---
@@ -102,7 +102,7 @@ herramientas de sólo lectura sobre un CV. No hay shell, ni escrituras, ni SQL."
 
 ### 8. Construí RAG y la medición dijo que no lo usara
 
-Abrir `docs/EVALUATION-LADDER.md`.
+Abrir `docs/EVALUACION.md`, sección *La escalera de recuperación*.
 
 | Modo | Sin falsedades | Cobertura | p50 | Tokens |
 |---|---:|---:|---:|---:|
@@ -115,7 +115,7 @@ Abrir `docs/EVALUATION-LADDER.md`.
 que la única variable fuera la recuperación. Y la línea base ganó en todos los ejes:
 mejor cobertura, menor latencia, una sexta parte de los tokens."*
 
-*"Con 135 chunks el perfil entero cabe en el prompt, así que recuperar sólo puede
+*"Con un corpus de este tamaño el perfil entero cabe en el prompt, así que recuperar sólo puede
 quitarle contexto al modelo. Producción corre sin recuperación."*
 
 *"Podría haber enviado híbrido de todas formas y nadie se habría enterado. Pero enviar
@@ -136,7 +136,7 @@ consulta decía 'ISIN'."*
 
 ### 9. Mis propias pruebas no servían
 
-Abrir `docs/COMPLIANCE.md`.
+Abrir `docs/EVALUACION.md`, sección *Conformidad con Open Responses*.
 
 *"Corrí el tester oficial de Open Responses contra el endpoint desplegado. Dio **1 de
 17**. En ese momento yo tenía doce pruebas de contrato propias y **todas pasaban**."*
@@ -184,11 +184,11 @@ mejor, fallaba en negarse. Por eso no presento un número sin haber intentado ro
 **¿Por qué no LangChain?**
 *"Lo evalué y lo descarté. El reto pide el criterio detrás de las capas que un
 framework esconde. Y el contrato es Open Responses, que ningún framework emite: la
-traducción había que escribirla igual. Con 135 chunks, el beneficio de
+traducción había que escribirla igual. A esta escala, el beneficio de
 intercambiabilidad no existe."*
 
 **¿Por qué no hay base de datos?**
-*"Porque no responde ninguna pregunta que yo tenga. 135 chunks estáticos que viajan en
+*"Porque no responde ninguna pregunta que yo tenga. unos cientos de chunks estáticos que viajan en
 el repositorio; el coseno exacto tarda 4 ms; no hay escrituras ni concurrencia. El
 propio reto dice que estas piezas no deben añadirse sólo para hacer la solución más
 compleja. Cambiar a pgvector es una clase, no una reescritura."*
@@ -198,13 +198,13 @@ compleja. Cambiar a pgvector es una clase, no una reescritura."*
 sin coordinación porque no hay estado que compartir —la plataforma reenvía la
 transcripción completa. Lo primero que añadiría con tráfico real es rate limiting por
 cliente, que está configurado pero no aplicado, y está documentado como pendiente en
-`docs/SECURITY.md`."*
+`docs/POLITICAS.md`."*
 
 **¿Qué te costó más?**
 *"El despliegue, y no por lo interesante. Cuatro intentos: el `railway.toml` no se
 autodetecta, el builder instaló Python 3.13 contra un proyecto fijado a 3.12, y el
 contenedor moría por memoria exactamente en el límite de 1 GB. Ese último lo resolví
-midiendo en vez de adivinando: la sesión ONNX son 667 MB, y embeber los 135 chunks de
+midiendo en vez de adivinando: la sesión ONNX son 667 MB, y embeber los chunks de
 una sola vez llegaba a 1202 MB. En lotes de 8 baja a 708."*
 
 **¿Qué harías diferente?**
