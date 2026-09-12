@@ -148,7 +148,8 @@ categories:
     skills:
       - { name: tmux,         proficiency: PROVEN,      domains: [devops] }
       - { name: Helix,        proficiency: EXPERIENCED, domains: [devops] }
-      - { name: Devbox / Nix, proficiency: EXPERIENCED, domains: [devops] }
+      - { name: Devbox / Nix, proficiency: EXPERIENCED, domains: [devops],
+          note: "Uso profesional en Cicada manteniendo la configuración del proyecto al incorporar dependencias, y uso personal en sus propios repositorios." }
       - { name: direnv,       proficiency: EXPERIENCED, domains: [devops] }
       - { name: just,         proficiency: PROJECT,     domains: [devops, automation] }
       - { name: WSL2,         proficiency: FAMILIAR,    domains: [devops] }
@@ -166,6 +167,14 @@ categories:
       - { name: Runbooks operativos,   proficiency: PROVEN, domains: [ops] }
       - { name: Clean Code,            proficiency: PROVEN, domains: [backend] }
       - { name: Agile / Scrum,         proficiency: PROVEN, domains: [backend] }
+      - { name: Desarrollo guiado por pruebas (TDD), proficiency: PROVEN, domains: [backend],
+          note: "Disciplina aplicada sobre la suite del monolito en Django: cada cambio obligaba a revisar y corregir los tests afectados antes de integrar." }
+      - { name: Pruebas end-to-end, proficiency: PROVEN, domains: [backend],
+          note: "Repositorio dedicado a pruebas de punta a punta sobre la creación de instrucciones de liquidación. No sólo escribió casos: construyó helpers e infraestructura de pruebas, incluidas utilidades para emitir los eventos de NATS del flujo." }
+      - { name: k6, proficiency: PROVEN, domains: [backend, devops],
+          note: "Herramienta del repositorio de pruebas end-to-end en Cicada. Escribió los casos y además construyó helpers e infraestructura sobre ella." }
+      - { name: Mantenimiento de CI/CD (GitHub Actions), proficiency: PROVEN, domains: [devops],
+          note: "MATIZ: mantener y ajustar un pipeline existente —dependencias, workflow y construcción de contenedores alineados con el entorno local— no diseñarlo desde cero." }
       - { name: Patrones de diseño,    proficiency: EXPERIENCED, domains: [backend] }
 
 domain_knowledge:
