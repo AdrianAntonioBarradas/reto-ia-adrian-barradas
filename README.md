@@ -64,8 +64,6 @@ sitios a la vez.
 | [**EVALUACION.md**](docs/EVALUACION.md) | Cómo se mide y qué salió: recuperación, respuestas, la escalera, comparación de modelos, conformidad. Cada tabla con su modelo, modo, fecha y versión del corpus |
 | [**POLITICAS.md**](docs/POLITICAS.md) | La política de honestidad como dato, los escenarios que la verifican, y el repaso completo contra el OWASP GenAI LLM Top 10 (2025 → 2026) |
 
-Y [**DEMO.md**](docs/DEMO.md), que es el guion de la demostración.
-
 ---
 
 ## Arquitectura en un párrafo

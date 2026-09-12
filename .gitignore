@@ -19,3 +19,7 @@ docs/PENDIENTES.md
 
 # Material de investigación de origen, no derivable ni revisable en diff.
 *.docx
+
+# Guion de la demostración: notas de intervención en primera persona, incluidas
+# las respuestas preparadas. Es material del presentador, no del sistema.
+docs/DEMO.md
