@@ -66,6 +66,12 @@ async def create_response(
             "evidence": [e.source_id for e in result.evidence],
             "short_circuited": result.short_circuited,
             "pending_tool_calls": [c.name for c in result.pending_tool_calls],
+            # Token accounting: without this, "what does it cost to run?" can only
+            # be answered from the provider console.
+            "model": result.model,
+            "input_tokens": result.usage.get("prompt_tokens", 0),
+            "output_tokens": result.usage.get("completion_tokens", 0),
+            "cache_read_tokens": result.usage.get("cache_read_tokens", 0),
         },
     )
 

@@ -136,12 +136,17 @@ class AnthropicAdapter:
             "model": self._model,
             "max_tokens": self._max_output_tokens,
             "messages": turns,
+        }
+        if self._effort:
             # Answering a grounded question from retrieved evidence is not a hard
             # reasoning task; low effort keeps latency and cost down. Thinking
             # itself stays on — disabling it on current models has its own failure
             # modes, including tool calls written into visible text.
-            "output_config": {"effort": self._effort},
-        }
+            #
+            # Sent only when configured, because `output_config` is not universal:
+            # Haiku 4.5 rejects it outright with "This model does not support...".
+            # An empty LLM_EFFORT omits it, which is what smaller models need.
+            request["output_config"] = {"effort": self._effort}
         if system:
             request["system"] = [
                 {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
@@ -184,15 +189,39 @@ class AnthropicAdapter:
                     )
                 )
 
+        # Anthropic reports cached input SEPARATELY from input_tokens: a cached
+        # prompt shows up as cache_read_input_tokens and does *not* appear in
+        # input_tokens. Recording only input_tokens undercounted a 17,443-token
+        # system prompt as ~20 tokens, which made every cost figure meaningless.
         usage = response.usage
+        cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0
+        cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
+        billable_input = usage.input_tokens + cache_read + cache_write
+
+        if response.stop_reason == "max_tokens":
+            # The answer is cut off mid-sentence and looks complete to everything
+            # downstream. Nothing else in the system inspects stop_reason, so if it
+            # is not surfaced here it is not surfaced at all.
+            logger.warning(
+                "llm response truncated at max_tokens",
+                extra={
+                    "model": self._model,
+                    "max_tokens": self._max_output_tokens,
+                    "output_tokens": usage.output_tokens,
+                },
+            )
+
         return LLMResponse(
             content="\n".join(text_parts) if text_parts else None,
             tool_calls=tuple(calls),
             finish_reason=response.stop_reason or "end_turn",
             usage={
-                "prompt_tokens": usage.input_tokens,
+                "prompt_tokens": billable_input,
                 "completion_tokens": usage.output_tokens,
-                "total_tokens": usage.input_tokens + usage.output_tokens,
+                "total_tokens": billable_input + usage.output_tokens,
+                "cache_read_tokens": cache_read,
+                "cache_write_tokens": cache_write,
+                "uncached_input_tokens": usage.input_tokens,
             },
             model=response.model,
             provider_raw=tuple(raw),
