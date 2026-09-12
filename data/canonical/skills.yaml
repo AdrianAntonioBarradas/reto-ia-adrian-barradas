@@ -35,8 +35,26 @@ categories:
       - { name: Diseño orientado a eventos, proficiency: EXPERIENCED, domains: [backend] }
       - { name: SQLAlchemy,     proficiency: EXPERIENCED, domains: [backend] }
       - { name: Alembic,        proficiency: EXPERIENCED, domains: [backend] }
+      - { name: Django, proficiency: EXPERIENCED, domains: [backend],
+          note: "Aprendido en el trabajo manteniendo un monolito grande y preexistente en Cicada: resolución de tickets, features y extracción de servicios hacia microservicios. No es su stack principal." }
+      - { name: Django ORM, proficiency: EXPERIENCED, domains: [backend, data],
+          note: "Usado sobre el monolito de Cicada para consultas y modelado existentes." }
+      - { name: Django signals, proficiency: FAMILIAR, domains: [backend],
+          note: "MATIZ: sólo a nivel de LECTURA. Tuvo que entenderlas para modificar o extraer código que ya las usaba al resolver bugs y tickets. NUNCA implementó ni diseñó una signal. No presentarlo como que sabe usarlas." }
+      - { name: NATS, proficiency: EXPERIENCED, domains: [backend],
+          note: "MATIZ: fue CONSUMIDOR de mensajes, no operador del broker. Trabajó sobre un consumidor de eventos externos de precios en Cicada y lo migró a un microservicio nuevo. No administró ni configuró la infraestructura de NATS." }
+      - { name: Typst, proficiency: EXPERIENCED, domains: [backend],
+          note: "Escribió las plantillas de los documentos PDF (cartas de confirmación) del microservicio de Post-Trade en Cicada." }
+      - { name: Generación de PDF / documentos, proficiency: PROVEN, domains: [backend, automation],
+          note: "Pipeline completo en producción: plantillas Typst, generación, publicación por evento y entrega por correo." }
+      - { name: Plantillas HTML de correo (Gmail y Outlook), proficiency: EXPERIENCED, domains: [backend, frontend],
+          note: "MATIZ: son plantillas de correo, no frontend de aplicación. Requiere HTML y estilos distintos por cliente para renderizar igual." }
+      - { name: Twilio SendGrid, proficiency: FAMILIAR, domains: [backend],
+          note: "MATIZ: editó plantillas dentro de un flujo que entregaba por SendGrid. No configuró ni administró el servicio." }
+      - { name: Google Apps Script, proficiency: FAMILIAR, domains: [automation],
+          note: "MATIZ: sólo a nivel de LECTURA. Tuvo que entender una hoja de cálculo con Apps Script que generaba documentos, para poder reemplazarla por un microservicio. No desarrolló en Apps Script." }
       - { name: Kafka / RabbitMQ / Redis, proficiency: LEARNING, domains: [backend],
-          note: "Evaluados como requisito de vacantes; sin experiencia práctica." }
+          note: "Evaluados como requisito de vacantes; sin experiencia práctica. Su experiencia con mensajería es con NATS, y como consumidor: no es transferible a estas tres." }
 
   cloud_devops:
     label: Cloud / DevOps

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-11T11:19:44Z",
-  "corpus_sha256": "c57ac68e65d2e2d49a05899c3c1bfc8798b496dffc2df47a52c7d68d2e4c90f5",
+  "generated_at": "2026-09-12T05:02:16Z",
+  "corpus_sha256": "43b65750108e51ceec55ced74e7f62bbb62226ba21fe641d64634b7981ba5dab",
   "file_count": 6,
   "files": {
     "education.yaml": {
@@ -8,8 +8,8 @@
       "bytes": 1480
     },
     "experience.yaml": {
-      "sha256": "314919d9d2d73439eba78eddc80ee5d27baba4c8e09902ea09b1ddd377260e77",
-      "bytes": 6467
+      "sha256": "dbe8a473f576987c6e6761c45ebb95215e4e4fe32c457f4c0eb461374dd04a99",
+      "bytes": 9064
     },
     "policy.yaml": {
       "sha256": "edf02a2a7e6bc53ed799092a2f34a4f153568ffd34c3b53c9167fdec3d020412",
@@ -24,8 +24,8 @@
       "bytes": 8068
     },
     "skills.yaml": {
-      "sha256": "49bc403bcb8896e8a8eb0ad7a7f88504fbeccb1197fbf636564912b07246dcfd",
-      "bytes": 9360
+      "sha256": "2c3a7f236d863c9684f7a9eaecc2359f0e7d61357ea8af0cd196694a530448ed",
+      "bytes": 11733
     }
   }
 }
