@@ -35,8 +35,14 @@ check "POST /v1/responses with a wrong token" 401 \
       -H 'Content-Type: application/json' -d '{"input":"hola"}')"
 
 # The card must advertise the base the platform will append /responses to.
+# A2A v1.0 has no top-level `url`: interfaces live in supportedInterfaces, each with
+# its own url and binding. Reading card["url"] silently returned "" after that
+# migration, so this check was passing vacuously until the value changed.
 card_url=$(curl -s --max-time 30 "$BASE_URL/.well-known/agent-card.json" \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin).get("url",""))' 2>/dev/null)
+  | python3 -c 'import json,sys
+d = json.load(sys.stdin)
+ifaces = d.get("supportedInterfaces") or []
+print(ifaces[0].get("url", "") if ifaces else "")' 2>/dev/null)
 check "agent card advertises /v1" "$BASE_URL/v1" "$card_url"
 
 echo "  ...    asking a grounded question (this calls the LLM)"
