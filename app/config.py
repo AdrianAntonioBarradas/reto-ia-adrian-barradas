@@ -51,6 +51,14 @@ class Settings(BaseSettings):
     # Empty means "do not send output_config at all" — required for models that
     # reject the parameter, such as Haiku 4.5.
     llm_effort: Literal["", "low", "medium", "high", "xhigh", "max"] = "low"
+    # Prompt-cache lifetime. Measured on this agent: the system prompt is 17,443
+    # tokens, so where it is billed from dominates the cost of a turn. A 5-minute
+    # write costs 1.25x base input and a 1-hour write 2x, against 0.1x for a read.
+    # With sporadic traffic — a person asking a question every few minutes — the
+    # 5-minute window expires between turns, every call pays a write, and caching
+    # ends up 25% MORE expensive than not caching at all. The hour window survives
+    # the gaps, which is the traffic shape this agent actually sees.
+    llm_cache_ttl: Literal["5m", "1h"] = "1h"
 
     # --- Embeddings ---------------------------------------------------------
     # Local ONNX. No API key, deterministic, and the same encoder family whose

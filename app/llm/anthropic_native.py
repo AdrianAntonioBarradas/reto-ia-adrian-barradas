@@ -102,6 +102,7 @@ class AnthropicAdapter:
         model: str,
         max_output_tokens: int = 8192,
         effort: str = "low",
+        cache_ttl: str = "1h",
         timeout_s: float = 60.0,
         client: AsyncAnthropic | None = None,
     ) -> None:
@@ -111,6 +112,7 @@ class AnthropicAdapter:
         # beyond the visible answer or the response truncates mid-thought.
         self._max_output_tokens = max_output_tokens
         self._effort = effort
+        self._cache_ttl = cache_ttl
         self._timeout_s = timeout_s
         self._client = client
 
@@ -148,8 +150,15 @@ class AnthropicAdapter:
             # An empty LLM_EFFORT omits it, which is what smaller models need.
             request["output_config"] = {"effort": self._effort}
         if system:
+            # The system prompt is by far the largest part of a request here, so
+            # whether it is billed as a cache write, a cache read or plain input is
+            # the single biggest lever on cost. See Settings.llm_cache_ttl.
             request["system"] = [
-                {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+                {
+                    "type": "text",
+                    "text": system,
+                    "cache_control": {"type": "ephemeral", "ttl": self._cache_ttl},
+                }
             ]
         if tools:
             request["tools"] = [
@@ -235,5 +244,6 @@ def build_anthropic_adapter(settings: Settings | None = None) -> AnthropicAdapte
         model=cfg.llm_model,
         max_output_tokens=cfg.llm_max_output_tokens,
         effort=cfg.llm_effort,
+        cache_ttl=cfg.llm_cache_ttl,
         timeout_s=cfg.llm_timeout_s,
     )
