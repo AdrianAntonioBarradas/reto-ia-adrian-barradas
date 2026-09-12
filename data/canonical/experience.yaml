@@ -110,6 +110,22 @@ experience:
           a eventos. Eso implicó aprender Django y su ORM sobre una base de código
           grande que ya existía, para poder leerla, modificarla y extraer piezas de ella
           sin romperla.
+      - id: local_distributed_env
+        proficiency: EXPERIENCED
+        domains: [devops, backend]
+        es: >-
+          Trabajé a diario sobre un entorno local que levantaba el sistema distribuido
+          completo de Cicada —el monolito, los microservicios, las bases de datos, la red
+          y el frontend— desde un repositorio central que el equipo llamaba Olympus (los
+          repositorios llevaban nombres de dioses, al principio griegos y después de otras
+          mitologías). Olympus abría una sesión de Zellij con los logs de cada servicio a
+          la vista, lo que permitía seguir el comportamiento del sistema completo mientras
+          se desarrollaba, además de operar los canales de NATS y el Caddy que resolvía la
+          autenticación OAuth 2 en local.
+        caveat: >-
+          Fue usuario del entorno, no su autor: Olympus ya existía. Presentar como
+          experiencia trabajando con un sistema distribuido en local, no como haber
+          construido la herramienta.
       - id: nats_price_feed
         proficiency: PROVEN
         domains: [backend, data, finance]

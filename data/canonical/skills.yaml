@@ -53,6 +53,8 @@ categories:
           note: "MATIZ: editó plantillas dentro de un flujo que entregaba por SendGrid. No configuró ni administró el servicio." }
       - { name: Google Apps Script, proficiency: FAMILIAR, domains: [automation],
           note: "MATIZ: sólo a nivel de LECTURA. Tuvo que entender una hoja de cálculo con Apps Script que generaba documentos, para poder reemplazarla por un microservicio. No desarrolló en Apps Script." }
+      - { name: OAuth 2, proficiency: FAMILIAR, domains: [backend],
+          note: "MATIZ: exposición a través del Caddy que resolvía la autenticación en el entorno local de Cicada. No diseñó ni implementó un flujo OAuth 2." }
       - { name: Kafka / RabbitMQ / Redis, proficiency: LEARNING, domains: [backend],
           note: "Evaluados como requisito de vacantes; sin experiencia práctica. Su experiencia con mensajería es con NATS, y como consumidor: no es transferible a estas tres." }
 
@@ -150,6 +152,12 @@ categories:
       - { name: direnv,       proficiency: EXPERIENCED, domains: [devops] }
       - { name: just,         proficiency: PROJECT,     domains: [devops, automation] }
       - { name: WSL2,         proficiency: FAMILIAR,    domains: [devops] }
+      - { name: Zellij,       proficiency: FAMILIAR,    domains: [devops],
+          note: "MATIZ: usó a diario una sesión de Zellij que levantaba una herramienta interna del equipo (Olympus) para ver los logs de todos los servicios. No la configuró él. Su multiplexor propio es tmux, ese sí a nivel PROVEN." }
+      - { name: Caddy,        proficiency: FAMILIAR,    domains: [devops, backend],
+          note: "MATIZ: usó una instalación existente que resolvía autenticación OAuth 2 en el entorno local de Cicada. No la construyó ni la configuró." }
+      - { name: Entornos locales de sistemas distribuidos, proficiency: EXPERIENCED, domains: [devops, backend],
+          note: "Trabajo diario sobre un stack local completo —monolito, microservicios, bases de datos, red y frontend— con logs de todos los servicios a la vista. Se conecta con su práctica actual de entornos reproducibles con devbox y tmux." }
 
   practices:
     label: Prácticas
