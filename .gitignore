@@ -11,3 +11,11 @@ __pycache__/
 node_modules/
 /reports/
 .fastembed_cache/
+
+# Cuadernos de trabajo personales: material de estudio y lista de pendientes.
+# Se mantienen en disco, fuera del repositorio: no son documentación del sistema.
+docs/ESTUDIO.md
+docs/PENDIENTES.md
+
+# Material de investigación de origen, no derivable ni revisable en diff.
+*.docx
