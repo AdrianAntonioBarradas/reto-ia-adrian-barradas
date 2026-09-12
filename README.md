@@ -238,7 +238,7 @@ docs/              ARCHITECTURE · DECISIONS · SECURITY · EVALUATION · DEMO
 
 ## Seguridad
 
-Repasado contra el **OWASP GenAI LLM Top 10 (2025)** en
+Repasado contra el **OWASP GenAI LLM Top 10**, con el mapeo a la edición **2026** publicada el 4 de agosto de 2026 —incluido el re-alcance de *System Prompt Leakage* a *Hidden Context Exposure*, que en modo `context` abarca el corpus entero— en
 [`docs/SECURITY.md`](docs/SECURITY.md), incluyendo una sección de lo que **no** está
 resuelto —un inventario que sólo lista victorias no es creíble.
 
